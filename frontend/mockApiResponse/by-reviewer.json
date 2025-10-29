@@ -1,0 +1,493 @@
+[
+    {
+        "reviewer_id": 2672,
+        "reviewer_name": "Suraj Gupta",
+        "conversation_count": 19,
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "pass_count": 12,
+                "not_pass_count": 0,
+                "average_score": 4.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "pass_count": 15,
+                "not_pass_count": 0,
+                "average_score": 3.95
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 15,
+                "average_score": 3.45
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "pass_count": 8,
+                "not_pass_count": 7,
+                "average_score": 2.11
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 15,
+                "average_score": 3.34
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "pass_count": 15,
+                "not_pass_count": 0,
+                "average_score": 3.95
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 1,
+                "average_score": 0.0
+            }
+        ]
+    },
+    {
+        "reviewer_id": 2601,
+        "reviewer_name": "Jibola Bakare",
+        "conversation_count": 14,
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "pass_count": 11,
+                "not_pass_count": 0,
+                "average_score": 4.58
+            },
+            {
+                "name": "Research Topic Alignment",
+                "pass_count": 11,
+                "not_pass_count": 0,
+                "average_score": 4.23
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 12,
+                "average_score": 3.96
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "pass_count": 12,
+                "not_pass_count": 0,
+                "average_score": 4.29
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 12,
+                "average_score": 3.79
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "pass_count": 12,
+                "not_pass_count": 0,
+                "average_score": 4.29
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "pass_count": 1,
+                "not_pass_count": 0,
+                "average_score": 2.5
+            }
+        ]
+    },
+    {
+        "reviewer_id": 2674,
+        "reviewer_name": "Tejashri Patil",
+        "conversation_count": 12,
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "pass_count": 11,
+                "not_pass_count": 1,
+                "average_score": 4.67
+            },
+            {
+                "name": "Research Topic Alignment",
+                "pass_count": 12,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 12,
+                "average_score": 4.75
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "pass_count": 12,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 12,
+                "average_score": 4.12
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "pass_count": 12,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            }
+        ]
+    },
+    {
+        "reviewer_id": 2685,
+        "reviewer_name": "Prashant Saini",
+        "conversation_count": 15,
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "pass_count": 13,
+                "not_pass_count": 0,
+                "average_score": 4.64
+            },
+            {
+                "name": "Research Topic Alignment",
+                "pass_count": 14,
+                "not_pass_count": 0,
+                "average_score": 4.67
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 14,
+                "average_score": 4.3
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "pass_count": 13,
+                "not_pass_count": 1,
+                "average_score": 4.33
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 14,
+                "average_score": 4.3
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "pass_count": 13,
+                "not_pass_count": 1,
+                "average_score": 4.33
+            }
+        ]
+    },
+    {
+        "reviewer_id": 2677,
+        "reviewer_name": "Sneha Seth",
+        "conversation_count": 5,
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "pass_count": 1,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "pass_count": 3,
+                "not_pass_count": 0,
+                "average_score": 3.75
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 3,
+                "average_score": 2.7
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "pass_count": 3,
+                "not_pass_count": 0,
+                "average_score": 3.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 3,
+                "average_score": 2.7
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "pass_count": 3,
+                "not_pass_count": 0,
+                "average_score": 3.0
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "pass_count": 1,
+                "not_pass_count": 0,
+                "average_score": 1.67
+            }
+        ]
+    },
+    {
+        "reviewer_id": 2712,
+        "reviewer_name": "Mabel Komanduru",
+        "conversation_count": 6,
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "pass_count": 6,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "pass_count": 6,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 6,
+                "average_score": 4.75
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "pass_count": 6,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 6,
+                "average_score": 4.42
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "pass_count": 6,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            }
+        ]
+    },
+    {
+        "reviewer_id": 2707,
+        "reviewer_name": "Sharan Chandra",
+        "conversation_count": 2,
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 1,
+                "average_score": 0.5
+            },
+            {
+                "name": "Research Topic Alignment",
+                "pass_count": 1,
+                "not_pass_count": 0,
+                "average_score": 2.5
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 1,
+                "average_score": 1.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "pass_count": 1,
+                "not_pass_count": 0,
+                "average_score": 2.5
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 1,
+                "average_score": 1.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 1,
+                "average_score": 0.0
+            }
+        ]
+    },
+    {
+        "reviewer_id": 2686,
+        "reviewer_name": "Davis Pallipat",
+        "conversation_count": 4,
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "pass_count": 3,
+                "not_pass_count": 0,
+                "average_score": 3.75
+            },
+            {
+                "name": "Research Topic Alignment",
+                "pass_count": 3,
+                "not_pass_count": 0,
+                "average_score": 3.75
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 3,
+                "average_score": 3.38
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "pass_count": 3,
+                "not_pass_count": 0,
+                "average_score": 3.75
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 3,
+                "average_score": 3.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "pass_count": 3,
+                "not_pass_count": 0,
+                "average_score": 3.75
+            }
+        ]
+    },
+    {
+        "reviewer_id": 742,
+        "reviewer_name": "Mintesnote Bankisra Biza",
+        "conversation_count": 2,
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "pass_count": 2,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 2,
+                "average_score": 3.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "pass_count": 2,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 2,
+                "average_score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "pass_count": 2,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "pass_count": 2,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            }
+        ]
+    },
+    {
+        "reviewer_id": 2675,
+        "reviewer_name": "Naveed Ul Aziz",
+        "conversation_count": 2,
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "pass_count": 1,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "pass_count": 1,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 1,
+                "average_score": 2.25
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "pass_count": 1,
+                "not_pass_count": 0,
+                "average_score": 2.5
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 1,
+                "average_score": 2.25
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "pass_count": 1,
+                "not_pass_count": 0,
+                "average_score": 2.5
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 0,
+                "average_score": 0.0
+            }
+        ]
+    },
+    {
+        "reviewer_id": 486,
+        "reviewer_name": "Mirza Kamaal",
+        "conversation_count": 1,
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "pass_count": 1,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 1,
+                "average_score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "pass_count": 1,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "pass_count": 0,
+                "not_pass_count": 1,
+                "average_score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "pass_count": 1,
+                "not_pass_count": 0,
+                "average_score": 5.0
+            }
+        ]
+    }
+]
