@@ -1,0 +1,2991 @@
+[
+    {
+        "task_id": 380956,
+        "annotator_id": 2685,
+        "annotator_name": "Prashant Saini",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 380958,
+        "annotator_id": 2685,
+        "annotator_name": "Prashant Saini",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 380960,
+        "annotator_id": 2672,
+        "annotator_name": "Suraj Gupta",
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 380963,
+        "annotator_id": 2685,
+        "annotator_name": "Prashant Saini",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": null,
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 380964,
+        "annotator_id": 2685,
+        "annotator_name": "Prashant Saini",
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 3.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 380966,
+        "annotator_id": 2745,
+        "annotator_name": "Akash Sharma",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 380967,
+        "annotator_id": 2745,
+        "annotator_name": "Akash Sharma",
+        "quality_dimensions": [
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 380969,
+        "annotator_id": 2685,
+        "annotator_name": "Prashant Saini",
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 3.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 380981,
+        "annotator_id": 2680,
+        "annotator_name": "Ashwani Priyadarshi",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 380992,
+        "annotator_id": 2734,
+        "annotator_name": "Ayush Bhakre",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": null,
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 380997,
+        "annotator_id": 2745,
+        "annotator_name": "Akash Sharma",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381007,
+        "annotator_id": 2675,
+        "annotator_name": "Naveed Ul Aziz",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381010,
+        "annotator_id": 2675,
+        "annotator_name": "Naveed Ul Aziz",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381015,
+        "annotator_id": 2741,
+        "annotator_name": "Dhananjay Kale",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381021,
+        "annotator_id": 2708,
+        "annotator_name": "Mukesh Pathak",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Fail",
+                "score": 1.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 3.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 2.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "",
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 381023,
+        "annotator_id": 2708,
+        "annotator_name": "Mukesh Pathak",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": null,
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 381058,
+        "annotator_id": 2706,
+        "annotator_name": "Venkata Mohan",
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381060,
+        "annotator_id": 2706,
+        "annotator_name": "Venkata Mohan",
+        "quality_dimensions": [
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 381063,
+        "annotator_id": 2681,
+        "annotator_name": "Rishav Jyoti",
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "",
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 3.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381064,
+        "annotator_id": 416,
+        "annotator_name": "Rajith Kumar",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": null,
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 381065,
+        "annotator_id": 2677,
+        "annotator_name": "Sneha Seth",
+        "quality_dimensions": [
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381071,
+        "annotator_id": 416,
+        "annotator_name": "Rajith Kumar",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 3.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381073,
+        "annotator_id": 2681,
+        "annotator_name": "Rishav Jyoti",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381074,
+        "annotator_id": 2706,
+        "annotator_name": "Venkata Mohan",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381078,
+        "annotator_id": 416,
+        "annotator_name": "Rajith Kumar",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381080,
+        "annotator_id": 416,
+        "annotator_name": "Rajith Kumar",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 3.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381084,
+        "annotator_id": 2814,
+        "annotator_name": "Ashish Rane",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381085,
+        "annotator_id": 416,
+        "annotator_name": "Rajith Kumar",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381086,
+        "annotator_id": 2681,
+        "annotator_name": "Rishav Jyoti",
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 381090,
+        "annotator_id": 2785,
+        "annotator_name": "Syed Ali",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381096,
+        "annotator_id": 2785,
+        "annotator_name": "Syed Ali",
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "",
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Weight Distribution Verification [DRA]",
+                "score_text": "",
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 381099,
+        "annotator_id": 2706,
+        "annotator_name": "Venkata Mohan",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "",
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381100,
+        "annotator_id": 2681,
+        "annotator_name": "Rishav Jyoti",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "",
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381106,
+        "annotator_id": 2706,
+        "annotator_name": "Venkata Mohan",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "",
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381111,
+        "annotator_id": 2755,
+        "annotator_name": "Anshuman Thakur",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381114,
+        "annotator_id": 2674,
+        "annotator_name": "Tejashri Patil",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381116,
+        "annotator_id": 2679,
+        "annotator_name": "Chakrapani Ramesh",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 2.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 1.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381117,
+        "annotator_id": 2733,
+        "annotator_name": "Gayathri Kalidoss",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381118,
+        "annotator_id": 2755,
+        "annotator_name": "Anshuman Thakur",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381121,
+        "annotator_id": 2733,
+        "annotator_name": "Gayathri Kalidoss",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381136,
+        "annotator_id": 2686,
+        "annotator_name": "Davis Pallipat",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381158,
+        "annotator_id": 2752,
+        "annotator_name": "Deepika S",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381167,
+        "annotator_id": 2712,
+        "annotator_name": "Mabel Komanduru",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381170,
+        "annotator_id": 2731,
+        "annotator_name": "Kishoraditya Chaudhari",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381180,
+        "annotator_id": 2751,
+        "annotator_name": "Murtuza Bharmal",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381186,
+        "annotator_id": 2751,
+        "annotator_name": "Murtuza Bharmal",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 381196,
+        "annotator_id": 2686,
+        "annotator_name": "Davis Pallipat",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 383306,
+        "annotator_id": 2785,
+        "annotator_name": "Syed Ali",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": null,
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 383310,
+        "annotator_id": 2680,
+        "annotator_name": "Ashwani Priyadarshi",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "",
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 383318,
+        "annotator_id": 2733,
+        "annotator_name": "Gayathri Kalidoss",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 383319,
+        "annotator_id": 2733,
+        "annotator_name": "Gayathri Kalidoss",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 383320,
+        "annotator_id": 2733,
+        "annotator_name": "Gayathri Kalidoss",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 383327,
+        "annotator_id": 2799,
+        "annotator_name": "Pranjali Wagh",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 383331,
+        "annotator_id": 2810,
+        "annotator_name": "Pranavi Thangallapally",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 383334,
+        "annotator_id": 2810,
+        "annotator_name": "Pranavi Thangallapally",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 383347,
+        "annotator_id": 2752,
+        "annotator_name": "Deepika S",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 383351,
+        "annotator_id": 2755,
+        "annotator_name": "Anshuman Thakur",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Fail",
+                "score": 1.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 2.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 383352,
+        "annotator_id": 2810,
+        "annotator_name": "Pranavi Thangallapally",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 383353,
+        "annotator_id": 2810,
+        "annotator_name": "Pranavi Thangallapally",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386325,
+        "annotator_id": 2785,
+        "annotator_name": "Syed Ali",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386354,
+        "annotator_id": 2785,
+        "annotator_name": "Syed Ali",
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386359,
+        "annotator_id": 2785,
+        "annotator_name": "Syed Ali",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386539,
+        "annotator_id": 2785,
+        "annotator_name": "Syed Ali",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "",
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386547,
+        "annotator_id": 2785,
+        "annotator_name": "Syed Ali",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "",
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386560,
+        "annotator_id": 2788,
+        "annotator_name": "Rohit Chauhan",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386564,
+        "annotator_id": 2733,
+        "annotator_name": "Gayathri Kalidoss",
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386569,
+        "annotator_id": 2706,
+        "annotator_name": "Venkata Mohan",
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": null,
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 386570,
+        "annotator_id": 2681,
+        "annotator_name": "Rishav Jyoti",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": null,
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 386574,
+        "annotator_id": 2788,
+        "annotator_name": "Rohit Chauhan",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": null,
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": null,
+                "score": 0.0
+            }
+        ]
+    },
+    {
+        "task_id": 386577,
+        "annotator_id": 2810,
+        "annotator_name": "Pranavi Thangallapally",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386580,
+        "annotator_id": 2733,
+        "annotator_name": "Gayathri Kalidoss",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386584,
+        "annotator_id": 2714,
+        "annotator_name": "Anand Sasi",
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386597,
+        "annotator_id": 2804,
+        "annotator_name": "Garima Kaushik",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386599,
+        "annotator_id": 2792,
+        "annotator_name": "Kajal Sharma",
+        "quality_dimensions": [
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "",
+                "score": 0.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386600,
+        "annotator_id": 2804,
+        "annotator_name": "Garima Kaushik",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386602,
+        "annotator_id": 2792,
+        "annotator_name": "Kajal Sharma",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386603,
+        "annotator_id": 2804,
+        "annotator_name": "Garima Kaushik",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386604,
+        "annotator_id": 2745,
+        "annotator_name": "Akash Sharma",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386605,
+        "annotator_id": 2804,
+        "annotator_name": "Garima Kaushik",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386607,
+        "annotator_id": 2745,
+        "annotator_name": "Akash Sharma",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386609,
+        "annotator_id": 2745,
+        "annotator_name": "Akash Sharma",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    },
+    {
+        "task_id": 386610,
+        "annotator_id": 2804,
+        "annotator_name": "Garima Kaushik",
+        "quality_dimensions": [
+            {
+                "name": "Complexity Level Check [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Research Topic Alignment",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Evaluation Instructions [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Presence Verification [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            },
+            {
+                "name": "Rubric Requirement Specificity Verification [DRA]",
+                "score_text": "",
+                "score": 4.5
+            },
+            {
+                "name": "Rubric Requirement Specificity [DRA]",
+                "score_text": "Pass",
+                "score": 5.0
+            }
+        ]
+    }
+]
