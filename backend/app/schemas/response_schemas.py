@@ -10,9 +10,8 @@ class QualityDimensionStats(BaseModel):
     """Schema for quality dimension statistics"""
     
     name: str = Field(..., description="Quality dimension name")
-    pass_count: int = Field(..., description="Number of Pass score texts")
-    not_pass_count: int = Field(..., description="Number of Not Pass score texts")
     average_score: Optional[float] = Field(None, description="Average score")
+    score_count: int = Field(..., description="Number of scores recorded")
     
     class Config:
         json_encoders = {

@@ -33,53 +33,144 @@ class BigQueryService:
             # Use default credentials (useful for GCP environments)
             return bigquery.Client(project=self.settings.gcp_project_id)
     
-    def _build_review_detail_query(self) -> str:
+    def _build_filter_clauses(self, filters: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Build WHERE clause conditions from filters
+        
+        Args:
+            filters: Dictionary of filter key-value pairs
+            
+        Returns:
+            SQL WHERE conditions string
+        """
+        if not filters:
+            return ""
+        
+        conditions = []
+        
+        # Filter by domain
+        if filters.get('domain'):
+            conditions.append(f"domain = '{filters['domain']}'")
+        
+        # Filter by reviewer
+        if filters.get('reviewer'):
+            conditions.append(f"reviewer_id = '{filters['reviewer']}'")
+        
+        # Filter by trainer/annotator
+        if filters.get('trainer'):
+            conditions.append(f"human_role_id = '{filters['trainer']}'")
+        
+        # Filter by quality dimension
+        if filters.get('quality_dimension'):
+            conditions.append(f"name = '{filters['quality_dimension']}'")
+        
+        # Filter by score range
+        if filters.get('min_score') is not None:
+            conditions.append(f"score >= {filters['min_score']}")
+        
+        if filters.get('max_score') is not None:
+            conditions.append(f"score <= {filters['max_score']}")
+        
+        if conditions:
+            return " AND " + " AND ".join(conditions)
+        return ""
+    
+    def _build_review_detail_query(self, filters: Optional[Dict[str, Any]] = None) -> str:
         """
         Build the base review_detail CTE query
+        
+        Args:
+            filters: Dictionary of filter key-value pairs
         
         Returns:
             SQL query string for review_detail
         """
+        filter_clause = self._build_filter_clauses(filters)
+        
         return f"""
-        WITH task AS (
-          SELECT 
-            *,
-            CASE 
-              WHEN REGEXP_CONTAINS(statement, r'\\*\\*domain\\*\\*') THEN
-                TRIM(REGEXP_EXTRACT(statement, r'\\*\\*domain\\*\\*\\s*-\\s*([^\\*]+)'))
-              ELSE NULL
-            END AS domain
-          FROM `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.conversation`
-          WHERE project_id = {self.settings.project_id_filter}
-            AND status = 'completed'
-        ),
-        review AS (
-          SELECT 
-            *,
-            RANK() OVER(PARTITION BY conversation_id ORDER BY created_at DESC) AS rank_review
-          FROM(
-            SELECT * FROM `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.review`
-            WHERE review_type = 'manual'
-          )
-        ),
-        review_detail AS (
-          SELECT 
-            b.quality_dimension_id, 
-            task_.domain,
-            task_.human_role_id,
-            b.review_id, 
-            a.reviewer_id, 
-            a.conversation_id, 
-            rqd.name, 
-            b.score_text, 
-            b.score
-          FROM (SELECT * FROM review WHERE rank_review = 1) a
-          RIGHT JOIN task as task_ on task_.id=a.conversation_id
-          LEFT JOIN `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.review_quality_dimension_value` AS b 
-            ON b.review_id = a.id
-          LEFT JOIN `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.quality_dimension` AS rqd
-            ON rqd.id = b.quality_dimension_id
-        )
+                WITH task_deliver_info AS ( 
+                    SELECT DISTINCT 
+                        r.conversation_id AS r_id,
+                        bt.task_id AS delivered_id,
+                        c.colab_link AS RLHF_Link,
+                        r.status,
+                        DATE(r.updated_at) AS updated_at,
+                        cb.name,
+                        (
+                            SELECT DATE(MIN(csh_inner.updated_at))
+                            FROM `turing-gpt.prod_labeling_tool_z.conversation_status_history` csh_inner
+                            WHERE csh_inner.conversation_id = c.id
+                                AND csh_inner.old_status = 'labeling'
+                                AND csh_inner.new_status = 'completed'
+                        ) AS annotation_date
+                    FROM `turing-gpt.prod_labeling_tool_z.conversation` c
+                    INNER JOIN `turing-gpt.prod_labeling_tool_z.review` r
+                        ON c.id = r.conversation_id
+                    INNER JOIN `turing-gpt.prod_labeling_tool_z.batch` b
+                        ON c.project_id = b.project_id
+                    LEFT JOIN `turing-gpt.prod_labeling_tool_z.delivery_batch_task` bt
+                        ON bt.task_id = c.id
+                    LEFT JOIN `turing-gpt.prod_labeling_tool_z.contributor` cb
+                        ON cb.id = c.current_user_id
+                    WHERE c.project_id = 254
+                        -- AND c.batch_id IN (772, 805)
+                        AND c.status = 'completed'
+                        AND r.review_type NOT IN ('auto')
+                        AND r.followup_required = 0
+                        -- AND b.status != 'draft'
+                        AND r.id = (
+                            SELECT MAX(rn.id)
+                            FROM `turing-gpt.prod_labeling_tool_z.review` rn
+                            WHERE rn.conversation_id = r.conversation_id
+                                AND rn.review_type = 'manual'
+                                AND rn.status = 'published'
+                        )
+                ),
+                 task AS (
+                    SELECT 
+                        *,
+                        CASE 
+                            WHEN REGEXP_CONTAINS(statement, r'\\*\\*domain\\*\\*') THEN
+                                TRIM(REGEXP_EXTRACT(statement, r'\\*\\*domain\\*\\*\\s*-\\s*([^\\n]+)'))
+                            WHEN REGEXP_CONTAINS(statement, r'\\*\\*suggested-domain\\*\\*') THEN
+                                TRIM(REGEXP_EXTRACT(statement, r'\\*\\*suggested-domain\\*\\*\\s*-\\s*([^\\n]+)'))
+                            ELSE NULL
+                        END AS domain
+                    FROM `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.conversation`
+                    WHERE project_id = {self.settings.project_id_filter} 
+                        AND id IN (SELECT r_id FROM task_deliver_info WHERE delivered_id IS NULL)
+                        AND status = 'completed'
+                ),
+                review AS (
+                    SELECT 
+                        *,
+                        RANK() OVER(PARTITION BY conversation_id ORDER BY created_at DESC) AS rank_review
+                    FROM (
+                        SELECT * 
+                        FROM `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.review`
+                        WHERE review_type = 'manual'
+                    )
+                ),
+                review_detail AS (
+                    SELECT 
+                        b.quality_dimension_id, 
+                        task_.domain,
+                        task_.human_role_id,
+                        b.review_id, 
+                        a.reviewer_id, 
+                        a.conversation_id, 
+                        rqd.name, 
+                        b.score_text, 
+                        b.score
+                    FROM (SELECT * FROM review WHERE rank_review = 1) a
+                    RIGHT JOIN task AS task_ 
+                        ON task_.id = a.conversation_id
+                    LEFT JOIN `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.review_quality_dimension_value` AS b 
+                        ON b.review_id = a.id
+                    LEFT JOIN `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.quality_dimension` AS rqd
+                        ON rqd.id = b.quality_dimension_id
+                    WHERE 1=1 {filter_clause}
+                )
         """
     
     def _process_aggregation_results(self, results: List[Dict[str, Any]], group_key: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -97,8 +188,6 @@ class BigQueryService:
         grouped_data = defaultdict(lambda: defaultdict(lambda: {
             'name': None,
             'conversation_ids': set(),
-            'pass_count': 0,
-            'not_pass_count': 0,
             'scores': []
         }))
         
@@ -112,20 +201,12 @@ class BigQueryService:
             name = row.get('name')
             if name:  # Only process rows with a quality dimension name
                 conversation_id = row.get('conversation_id')
-                score_text = row.get('score_text')
                 score = row.get('score')
                 
                 grouped_data[group_value][name]['name'] = name
                 
                 if conversation_id is not None:
                     grouped_data[group_value][name]['conversation_ids'].add(conversation_id)
-                
-                # Count Pass vs Not Pass based on score_text
-                if score_text is not None:
-                    if isinstance(score_text, str) and 'pass' in score_text.lower():
-                        grouped_data[group_value][name]['pass_count'] += 1
-                    else:
-                        grouped_data[group_value][name]['not_pass_count'] += 1
                 
                 if score is not None:
                     grouped_data[group_value][name]['scores'].append(score)
@@ -146,9 +227,8 @@ class BigQueryService:
                 
                 quality_dimensions.append({
                     'name': data['name'],
-                    'pass_count': data['pass_count'],
-                    'not_pass_count': data['not_pass_count'],
-                    'average_score': avg_score
+                    'average_score': avg_score,
+                    'score_count': len(data['scores'])
                 })
             
             # Sort by name for consistency
@@ -183,8 +263,6 @@ class BigQueryService:
             'dimensions': defaultdict(lambda: {
                 'name': None,
                 'conversation_ids': set(),
-                'pass_count': 0,
-                'not_pass_count': 0,
                 'scores': []
             })
         })
@@ -196,7 +274,6 @@ class BigQueryService:
             
             if quality_dim_name:  # Only process rows with a quality dimension name
                 conversation_id = row.get('conversation_id')
-                score_text = row.get('score_text')
                 score = row.get('score')
                 
                 # Set reviewer info
@@ -208,13 +285,6 @@ class BigQueryService:
                 
                 if conversation_id is not None:
                     grouped_data[reviewer_id]['dimensions'][quality_dim_name]['conversation_ids'].add(conversation_id)
-                
-                # Count Pass vs Not Pass based on score_text
-                if score_text is not None:
-                    if isinstance(score_text, str) and 'pass' in score_text.lower():
-                        grouped_data[reviewer_id]['dimensions'][quality_dim_name]['pass_count'] += 1
-                    else:
-                        grouped_data[reviewer_id]['dimensions'][quality_dim_name]['not_pass_count'] += 1
                 
                 if score is not None:
                     grouped_data[reviewer_id]['dimensions'][quality_dim_name]['scores'].append(score)
@@ -235,9 +305,8 @@ class BigQueryService:
                 
                 quality_dimensions.append({
                     'name': data['name'],
-                    'pass_count': data['pass_count'],
-                    'not_pass_count': data['not_pass_count'],
-                    'average_score': avg_score
+                    'average_score': avg_score,
+                    'score_count': len(data['scores'])
                 })
             
             # Sort by name for consistency
@@ -269,8 +338,6 @@ class BigQueryService:
             'dimensions': defaultdict(lambda: {
                 'name': None,
                 'conversation_ids': set(),
-                'pass_count': 0,
-                'not_pass_count': 0,
                 'scores': []
             })
         })
@@ -282,7 +349,6 @@ class BigQueryService:
             
             if quality_dim_name:  # Only process rows with a quality dimension name
                 conversation_id = row.get('conversation_id')
-                score_text = row.get('score_text')
                 score = row.get('score')
                 
                 # Set trainer level info
@@ -294,13 +360,6 @@ class BigQueryService:
                 
                 if conversation_id is not None:
                     grouped_data[trainer_level_id]['dimensions'][quality_dim_name]['conversation_ids'].add(conversation_id)
-                
-                # Count Pass vs Not Pass based on score_text
-                if score_text is not None:
-                    if isinstance(score_text, str) and 'pass' in score_text.lower():
-                        grouped_data[trainer_level_id]['dimensions'][quality_dim_name]['pass_count'] += 1
-                    else:
-                        grouped_data[trainer_level_id]['dimensions'][quality_dim_name]['not_pass_count'] += 1
                 
                 if score is not None:
                     grouped_data[trainer_level_id]['dimensions'][quality_dim_name]['scores'].append(score)
@@ -321,9 +380,8 @@ class BigQueryService:
                 
                 quality_dimensions.append({
                     'name': data['name'],
-                    'pass_count': data['pass_count'],
-                    'not_pass_count': data['not_pass_count'],
-                    'average_score': avg_score
+                    'average_score': avg_score,
+                    'score_count': len(data['scores'])
                 })
             
             # Sort by name for consistency
@@ -338,17 +396,20 @@ class BigQueryService:
         
         return result
     
-    async def get_domain_aggregation(self) -> List[Dict[str, Any]]:
+    async def get_domain_aggregation(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """
         Get aggregated statistics by domain
+        
+        Args:
+            filters: Dictionary of filter key-value pairs
         
         Returns:
             List of domain aggregations with quality dimension stats
         """
-        base_query = self._build_review_detail_query()
+        base_query = self._build_review_detail_query(filters)
         
         query = base_query + """
-        SELECT 
+        SELECT DISTINCT
             domain,
             name,
             conversation_id,
@@ -363,17 +424,20 @@ class BigQueryService:
         
         return self._process_aggregation_results(results, 'domain')
     
-    async def get_reviewer_aggregation(self) -> List[Dict[str, Any]]:
+    async def get_reviewer_aggregation(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """
         Get aggregated statistics by reviewer with reviewer names
+        
+        Args:
+            filters: Dictionary of filter key-value pairs
         
         Returns:
             List of reviewer aggregations with quality dimension stats and reviewer names
         """
-        base_query = self._build_review_detail_query()
+        base_query = self._build_review_detail_query(filters)
         
         query = base_query + f"""
-        SELECT 
+        SELECT DISTINCT
             rd.reviewer_id,
             c.name AS reviewer_name,
             rd.name,
@@ -391,17 +455,20 @@ class BigQueryService:
         
         return self._process_reviewer_aggregation_results(results)
     
-    async def get_trainer_level_aggregation(self) -> List[Dict[str, Any]]:
+    async def get_trainer_level_aggregation(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """
         Get aggregated statistics by trainer level (human role) with trainer names
+        
+        Args:
+            filters: Dictionary of filter key-value pairs
         
         Returns:
             List of trainer level aggregations with quality dimension stats and trainer names
         """
-        base_query = self._build_review_detail_query()
+        base_query = self._build_review_detail_query(filters)
         
         query = base_query + f"""
-        SELECT 
+        SELECT DISTINCT
             rd.human_role_id AS trainer_level_id,
             c.name AS trainer_name,
             rd.name,
@@ -419,17 +486,20 @@ class BigQueryService:
         
         return self._process_trainer_level_aggregation_results(results)
     
-    async def get_task_level_info(self) -> List[Dict[str, Any]]:
+    async def get_task_level_info(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """
         Get task-level information with annotator details and quality dimensions
+        
+        Args:
+            filters: Dictionary of filter key-value pairs
         
         Returns:
             List of task-level information with annotator names and quality dimensions
         """
-        base_query = self._build_review_detail_query()
+        base_query = self._build_review_detail_query(filters)
         
         query = base_query + f"""
-        SELECT 
+        SELECT DISTINCT
             rd.conversation_id AS task_id,
             rd.human_role_id AS annotator_id,
             c.name AS annotator_name,
@@ -505,17 +575,20 @@ class BigQueryService:
         
         return result
     
-    async def get_overall_aggregation(self) -> Dict[str, Any]:
+    async def get_overall_aggregation(self, filters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Get overall aggregated statistics
+        
+        Args:
+            filters: Dictionary of filter key-value pairs
         
         Returns:
             Overall aggregation with quality dimension stats
         """
-        base_query = self._build_review_detail_query()
+        base_query = self._build_review_detail_query(filters)
         
         query = base_query + """
-        SELECT 
+        SELECT DISTINCT
             name,
             conversation_id,
             score_text,

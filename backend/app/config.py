@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     google_application_credentials: Optional[str] = None
     
     # API Settings
-    api_prefix: str = "/api/v1"
+    api_prefix: str = "/api"
     
     # CORS Settings
     cors_origins: list = ["*"]  # Update this with specific origins in production

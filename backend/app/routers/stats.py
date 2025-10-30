@@ -1,8 +1,8 @@
 """
 API endpoints for aggregated statistics
 """
-from fastapi import APIRouter, HTTPException
-from typing import List
+from fastapi import APIRouter, HTTPException, Query
+from typing import List, Optional
 
 from app.schemas.response_schemas import (
     DomainAggregation,
@@ -22,7 +22,15 @@ router = APIRouter(tags=["Statistics"])
     summary="Get statistics aggregated by domain",
     description="Retrieve aggregated statistics grouped by domain with quality dimension metrics"
 )
-async def get_stats_by_domain() -> List[DomainAggregation]:
+async def get_stats_by_domain(
+    domain: Optional[str] = Query(None, description="Filter by domain"),
+    reviewer: Optional[str] = Query(None, description="Filter by reviewer ID"),
+    trainer: Optional[str] = Query(None, description="Filter by trainer level ID"),
+    quality_dimension: Optional[str] = Query(None, description="Filter by quality dimension name"),
+    min_score: Optional[float] = Query(None, ge=0, le=5, description="Minimum score"),
+    max_score: Optional[float] = Query(None, ge=0, le=5, description="Maximum score"),
+    min_task_count: Optional[int] = Query(None, ge=1, description="Minimum task count")
+) -> List[DomainAggregation]:
     """
     Get statistics aggregated by domain
     
@@ -38,7 +46,16 @@ async def get_stats_by_domain() -> List[DomainAggregation]:
     """
     try:
         bq_service = get_bigquery_service()
-        result = await bq_service.get_domain_aggregation()
+        filters = {
+            'domain': domain,
+            'reviewer': reviewer,
+            'trainer': trainer,
+            'quality_dimension': quality_dimension,
+            'min_score': min_score,
+            'max_score': max_score,
+            'min_task_count': min_task_count
+        }
+        result = await bq_service.get_domain_aggregation(filters)
         
         return [DomainAggregation(**item) for item in result]
     
@@ -55,7 +72,15 @@ async def get_stats_by_domain() -> List[DomainAggregation]:
     summary="Get statistics aggregated by reviewer",
     description="Retrieve aggregated statistics grouped by reviewer with quality dimension metrics"
 )
-async def get_stats_by_reviewer() -> List[ReviewerAggregation]:
+async def get_stats_by_reviewer(
+    domain: Optional[str] = Query(None, description="Filter by domain"),
+    reviewer: Optional[str] = Query(None, description="Filter by reviewer ID"),
+    trainer: Optional[str] = Query(None, description="Filter by trainer level ID"),
+    quality_dimension: Optional[str] = Query(None, description="Filter by quality dimension name"),
+    min_score: Optional[float] = Query(None, ge=0, le=5, description="Minimum score"),
+    max_score: Optional[float] = Query(None, ge=0, le=5, description="Maximum score"),
+    min_task_count: Optional[int] = Query(None, ge=1, description="Minimum task count")
+) -> List[ReviewerAggregation]:
     """
     Get statistics aggregated by reviewer
     
@@ -71,7 +96,16 @@ async def get_stats_by_reviewer() -> List[ReviewerAggregation]:
     """
     try:
         bq_service = get_bigquery_service()
-        result = await bq_service.get_reviewer_aggregation()
+        filters = {
+            'domain': domain,
+            'reviewer': reviewer,
+            'trainer': trainer,
+            'quality_dimension': quality_dimension,
+            'min_score': min_score,
+            'max_score': max_score,
+            'min_task_count': min_task_count
+        }
+        result = await bq_service.get_reviewer_aggregation(filters)
         
         return [ReviewerAggregation(**item) for item in result]
     
@@ -88,7 +122,15 @@ async def get_stats_by_reviewer() -> List[ReviewerAggregation]:
     summary="Get statistics aggregated by trainer level",
     description="Retrieve aggregated statistics grouped by trainer level with quality dimension metrics and trainer names"
 )
-async def get_stats_by_trainer_level() -> List[TrainerLevelAggregation]:
+async def get_stats_by_trainer_level(
+    domain: Optional[str] = Query(None, description="Filter by domain"),
+    reviewer: Optional[str] = Query(None, description="Filter by reviewer ID"),
+    trainer: Optional[str] = Query(None, description="Filter by trainer level ID"),
+    quality_dimension: Optional[str] = Query(None, description="Filter by quality dimension name"),
+    min_score: Optional[float] = Query(None, ge=0, le=5, description="Minimum score"),
+    max_score: Optional[float] = Query(None, ge=0, le=5, description="Maximum score"),
+    min_task_count: Optional[int] = Query(None, ge=1, description="Minimum task count")
+) -> List[TrainerLevelAggregation]:
     """
     Get statistics aggregated by trainer level
     
@@ -105,7 +147,16 @@ async def get_stats_by_trainer_level() -> List[TrainerLevelAggregation]:
     """
     try:
         bq_service = get_bigquery_service()
-        result = await bq_service.get_trainer_level_aggregation()
+        filters = {
+            'domain': domain,
+            'reviewer': reviewer,
+            'trainer': trainer,
+            'quality_dimension': quality_dimension,
+            'min_score': min_score,
+            'max_score': max_score,
+            'min_task_count': min_task_count
+        }
+        result = await bq_service.get_trainer_level_aggregation(filters)
         
         return [TrainerLevelAggregation(**item) for item in result]
     
@@ -122,7 +173,15 @@ async def get_stats_by_trainer_level() -> List[TrainerLevelAggregation]:
     summary="Get overall statistics",
     description="Retrieve overall aggregated statistics across all dimensions with quality dimension metrics"
 )
-async def get_overall_stats() -> OverallAggregation:
+async def get_overall_stats(
+    domain: Optional[str] = Query(None, description="Filter by domain"),
+    reviewer: Optional[str] = Query(None, description="Filter by reviewer ID"),
+    trainer: Optional[str] = Query(None, description="Filter by trainer level ID"),
+    quality_dimension: Optional[str] = Query(None, description="Filter by quality dimension name"),
+    min_score: Optional[float] = Query(None, ge=0, le=5, description="Minimum score"),
+    max_score: Optional[float] = Query(None, ge=0, le=5, description="Maximum score"),
+    min_task_count: Optional[int] = Query(None, ge=1, description="Minimum task count")
+) -> OverallAggregation:
     """
     Get overall aggregated statistics
     
@@ -138,7 +197,16 @@ async def get_overall_stats() -> OverallAggregation:
     """
     try:
         bq_service = get_bigquery_service()
-        result = await bq_service.get_overall_aggregation()
+        filters = {
+            'domain': domain,
+            'reviewer': reviewer,
+            'trainer': trainer,
+            'quality_dimension': quality_dimension,
+            'min_score': min_score,
+            'max_score': max_score,
+            'min_task_count': min_task_count
+        }
+        result = await bq_service.get_overall_aggregation(filters)
         
         return OverallAggregation(**result)
     
@@ -155,7 +223,15 @@ async def get_overall_stats() -> OverallAggregation:
     summary="Get task-level information",
     description="Retrieve task-level information with annotator details and quality dimensions"
 )
-async def get_task_level_info() -> List[TaskLevelInfo]:
+async def get_task_level_info(
+    domain: Optional[str] = Query(None, description="Filter by domain"),
+    reviewer: Optional[str] = Query(None, description="Filter by reviewer ID"),
+    trainer: Optional[str] = Query(None, description="Filter by trainer level ID"),
+    quality_dimension: Optional[str] = Query(None, description="Filter by quality dimension name"),
+    min_score: Optional[float] = Query(None, ge=0, le=5, description="Minimum score"),
+    max_score: Optional[float] = Query(None, ge=0, le=5, description="Maximum score"),
+    min_task_count: Optional[int] = Query(None, ge=1, description="Minimum task count")
+) -> List[TaskLevelInfo]:
     """
     Get task-level information
     
@@ -170,7 +246,16 @@ async def get_task_level_info() -> List[TaskLevelInfo]:
     """
     try:
         bq_service = get_bigquery_service()
-        result = await bq_service.get_task_level_info()
+        filters = {
+            'domain': domain,
+            'reviewer': reviewer,
+            'trainer': trainer,
+            'quality_dimension': quality_dimension,
+            'min_score': min_score,
+            'max_score': max_score,
+            'min_task_count': min_task_count
+        }
+        result = await bq_service.get_task_level_info(filters)
         
         return [TaskLevelInfo(**item) for item in result]
     
