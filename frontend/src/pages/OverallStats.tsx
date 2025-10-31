@@ -2,26 +2,13 @@ import { useState, useEffect } from 'react'
 import {
   Box,
   Grid,
-  Card,
-  CardContent,
   Typography,
   Paper,
 } from '@mui/material'
-import {
-  ComposedChart,
-  Bar,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts'
-import { Assignment, TrendingUp } from '@mui/icons-material'
-import { getOverallStats } from '../services/api'
+import { Assignment, TrendingUp, RateReview, School } from '@mui/icons-material'
+import { getOverallStats, getFilterOptions } from '../services/api'
 import type { OverallAggregation, FilterParams } from '../types'
-import FilterPanel from '../components/FilterPanel'
+import AdvancedFilterPanel from '../components/AdvancedFilterPanel'
 import StatCard from '../components/StatCard'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorDisplay from '../components/ErrorDisplay'
@@ -31,6 +18,17 @@ export default function OverallStats() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<FilterParams>({})
+  const [filterOptions, setFilterOptions] = useState<{
+    domains: string[]
+    quality_dimensions: string[]
+    reviewers: Array<{ id: string; name: string }>
+    trainers: Array<{ id: string; name: string }>
+  }>({
+    domains: [],
+    quality_dimensions: [],
+    reviewers: [],
+    trainers: [],
+  })
 
   const fetchData = async () => {
     try {
@@ -48,6 +46,19 @@ export default function OverallStats() {
   useEffect(() => {
     fetchData()
   }, [filters])
+
+  useEffect(() => {
+    // Fetch filter options on component mount
+    const loadFilterOptions = async () => {
+      try {
+        const options = await getFilterOptions()
+        setFilterOptions(options)
+      } catch (err) {
+        console.error('Failed to load filter options:', err)
+      }
+    }
+    loadFilterOptions()
+  }, [])
 
   const handleFilterChange = (newFilters: FilterParams) => {
     setFilters(newFilters)
@@ -73,18 +84,22 @@ export default function OverallStats() {
         ).toFixed(2)
       : '0.00'
 
-  const totalScores = data.quality_dimensions.reduce((sum, qd) => sum + qd.score_count, 0)
-
   return (
     <Box>
       <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
         Overall Statistics
       </Typography>
 
-      <FilterPanel onFilterChange={handleFilterChange} />
+      <AdvancedFilterPanel 
+        onFilterChange={handleFilterChange}
+        availableDomains={filterOptions.domains}
+        availableQualityDimensions={filterOptions.quality_dimensions}
+        availableReviewers={filterOptions.reviewers}
+        availableTrainers={filterOptions.trainers}
+      />
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Total Conversations"
             value={data.conversation_count.toLocaleString()}
@@ -92,7 +107,23 @@ export default function OverallStats() {
             color="primary"
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="Total Reviewers"
+            value={data.reviewer_count.toLocaleString()}
+            icon={<RateReview />}
+            color="info"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="Total Trainers"
+            value={data.trainer_count.toLocaleString()}
+            icon={<School />}
+            color="warning"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Average Score"
             value={avgScore}
@@ -101,58 +132,9 @@ export default function OverallStats() {
             subtitle="Across all dimensions"
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <StatCard
-            title="Total Scores"
-            value={totalScores.toLocaleString()}
-            icon={<Assignment />}
-            color="success"
-          />
-        </Grid>
       </Grid>
 
       <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Quality Dimensions: Task Count & Average Score Trend
-              </Typography>
-              <ResponsiveContainer width="100%" height={500}>
-                <ComposedChart data={data.quality_dimensions}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={120} />
-                  <YAxis yAxisId="left" label={{ value: 'Task Count', angle: -90, position: 'insideLeft' }} />
-                  <YAxis 
-                    yAxisId="right" 
-                    orientation="right" 
-                    domain={[0, 5]} 
-                    label={{ value: 'Average Score', angle: 90, position: 'insideRight' }} 
-                  />
-                  <Tooltip />
-                  <Legend />
-                  <Bar 
-                    yAxisId="left" 
-                    dataKey="score_count" 
-                    fill="#FF9900" 
-                    name="Task Count" 
-                    opacity={0.8}
-                  />
-                  <Line 
-                    yAxisId="right" 
-                    type="monotone" 
-                    dataKey="average_score" 
-                    stroke="#146EB4" 
-                    strokeWidth={3}
-                    name="Average Score"
-                    dot={{ fill: '#146EB4', r: 4 }}
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
         <Grid item xs={12}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>

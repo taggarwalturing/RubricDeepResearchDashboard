@@ -144,12 +144,11 @@ class BigQueryService:
                 review AS (
                     SELECT 
                         *,
-                        RANK() OVER(PARTITION BY conversation_id ORDER BY created_at DESC) AS rank_review
-                    FROM (
-                        SELECT * 
-                        FROM `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.review`
-                        WHERE review_type = 'manual'
-                    )
+                        ROW_NUMBER() OVER(PARTITION BY conversation_id ORDER BY id DESC) AS row_num
+                    FROM `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.review`
+                    WHERE review_type = 'manual' 
+                        AND status = 'published'
+                        AND conversation_id IN (SELECT distinct id from task)
                 ),
                 review_detail AS (
                     SELECT 
@@ -162,7 +161,7 @@ class BigQueryService:
                         rqd.name, 
                         b.score_text, 
                         b.score
-                    FROM (SELECT * FROM review WHERE rank_review = 1) a
+                    FROM (SELECT * FROM review WHERE row_num = 1) a
                     RIGHT JOIN task AS task_ 
                         ON task_.id = a.conversation_id
                     LEFT JOIN `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.review_quality_dimension_value` AS b 
@@ -503,12 +502,16 @@ class BigQueryService:
             rd.conversation_id AS task_id,
             rd.human_role_id AS annotator_id,
             c.name AS annotator_name,
+            rd.reviewer_id,
+            cr.name AS reviewer_name,
             rd.name AS dimension_name,
             rd.score_text,
             rd.score
         FROM review_detail rd
         LEFT JOIN `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.contributor` c
             ON rd.human_role_id = c.id
+        LEFT JOIN `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.contributor` cr
+            ON rd.reviewer_id = cr.id
         WHERE rd.name IS NOT NULL
         ORDER BY rd.conversation_id, rd.name
         """
@@ -535,6 +538,8 @@ class BigQueryService:
             'task_id': None,
             'annotator_id': None,
             'annotator_name': None,
+            'reviewer_id': None,
+            'reviewer_name': None,
             'quality_dimensions': []
         })
         
@@ -542,6 +547,8 @@ class BigQueryService:
             task_id = row.get('task_id')
             annotator_id = row.get('annotator_id')
             annotator_name = row.get('annotator_name')
+            reviewer_id = row.get('reviewer_id')
+            reviewer_name = row.get('reviewer_name')
             dimension_name = row.get('dimension_name')
             score_text = row.get('score_text')
             score = row.get('score')
@@ -551,6 +558,8 @@ class BigQueryService:
                 grouped_data[task_id]['task_id'] = task_id
                 grouped_data[task_id]['annotator_id'] = annotator_id
                 grouped_data[task_id]['annotator_name'] = annotator_name
+                grouped_data[task_id]['reviewer_id'] = reviewer_id
+                grouped_data[task_id]['reviewer_name'] = reviewer_name
                 
                 # Add quality dimension
                 if dimension_name:
@@ -567,6 +576,8 @@ class BigQueryService:
                 'task_id': task_data['task_id'],
                 'annotator_id': task_data['annotator_id'],
                 'annotator_name': task_data['annotator_name'],
+                'reviewer_id': task_data['reviewer_id'],
+                'reviewer_name': task_data['reviewer_name'],
                 'quality_dimensions': task_data['quality_dimensions']
             })
         
@@ -587,26 +598,66 @@ class BigQueryService:
         """
         base_query = self._build_review_detail_query(filters)
         
+        # Combined query to get both quality dimensions and counts in one go
         query = base_query + """
-        SELECT DISTINCT
-            name,
-            conversation_id,
-            score_text,
-            score
-        FROM review_detail
-        WHERE name IS NOT NULL
+        , quality_data AS (
+            SELECT DISTINCT
+                name,
+                conversation_id,
+                score_text,
+                score
+            FROM review_detail
+            WHERE name IS NOT NULL
+        ),
+        count_data AS (
+            SELECT 
+                COUNT(DISTINCT reviewer_id) as reviewer_count,
+                COUNT(DISTINCT human_role_id) as trainer_count
+            FROM review_detail
+        )
+        SELECT 
+            qd.name,
+            qd.conversation_id,
+            qd.score_text,
+            qd.score,
+            cd.reviewer_count,
+            cd.trainer_count
+        FROM quality_data qd
+        CROSS JOIN count_data cd
         """
         
         query_job = self.client.query(query)
         results = [dict(row) for row in query_job.result()]
         
-        processed = self._process_aggregation_results(results, None)
+        # Extract counts from first row (they'll be the same for all rows)
+        reviewer_count = results[0]['reviewer_count'] if results else 0
+        trainer_count = results[0]['trainer_count'] if results else 0
+        
+        # Process quality dimension data (remove count fields for processing)
+        clean_results = [
+            {
+                'name': row['name'],
+                'conversation_id': row['conversation_id'],
+                'score_text': row['score_text'],
+                'score': row['score']
+            }
+            for row in results
+        ]
+        
+        processed = self._process_aggregation_results(clean_results, None)
         
         # Return the first (and only) item for overall stats
         if processed:
+            processed[0]['reviewer_count'] = reviewer_count
+            processed[0]['trainer_count'] = trainer_count
             return processed[0]
         
-        return {'quality_dimensions': []}
+        return {
+            'conversation_count': 0,
+            'reviewer_count': reviewer_count,
+            'trainer_count': trainer_count,
+            'quality_dimensions': []
+        }
 
 
 # Create a singleton instance

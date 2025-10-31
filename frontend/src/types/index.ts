@@ -26,6 +26,8 @@ export interface TrainerLevelAggregation {
 
 export interface OverallAggregation {
   conversation_count: number
+  reviewer_count: number
+  trainer_count: number
   quality_dimensions: QualityDimensionStats[]
 }
 
@@ -39,6 +41,8 @@ export interface TaskLevelInfo {
   task_id: number | null
   annotator_id: number | null
   annotator_name: string | null
+  reviewer_id: number | null
+  reviewer_name: string | null
   quality_dimensions: QualityDimensionDetail[]
 }
 

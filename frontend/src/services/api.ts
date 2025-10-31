@@ -133,3 +133,52 @@ export const checkHealth = async (): Promise<{ status: string; version: string }
   return response.data
 }
 
+// Get unique filter options
+export const getFilterOptions = async (): Promise<{
+  domains: string[]
+  quality_dimensions: string[]
+  reviewers: Array<{ id: string; name: string }>
+  trainers: Array<{ id: string; name: string }>
+}> => {
+  // Fetch data from different endpoints to build filter options
+  const [domainData, overallData, reviewerData, trainerData] = await Promise.all([
+    getDomainStats(),
+    getOverallStats(),
+    getReviewerStats(),
+    getTrainerStats(),
+  ])
+
+  // Extract unique domains
+  const domains = [...new Set(domainData.map(d => d.domain).filter(Boolean))] as string[]
+
+  // Extract unique quality dimensions
+  const qualityDimensions = [
+    ...new Set(
+      overallData.quality_dimensions.map(qd => qd.name)
+    )
+  ]
+
+  // Extract reviewers
+  const reviewers = reviewerData
+    .filter(r => r.reviewer_id)
+    .map(r => ({
+      id: String(r.reviewer_id),
+      name: r.reviewer_name || `Reviewer ${r.reviewer_id}`
+    }))
+
+  // Extract trainers
+  const trainers = trainerData
+    .filter(t => t.trainer_level_id)
+    .map(t => ({
+      id: String(t.trainer_level_id),
+      name: t.trainer_name || `Trainer ${t.trainer_level_id}`
+    }))
+
+  return {
+    domains,
+    quality_dimensions: qualityDimensions,
+    reviewers,
+    trainers,
+  }
+}
+

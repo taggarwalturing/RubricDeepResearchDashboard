@@ -52,7 +52,9 @@ export default function TaskLevel() {
         (task) =>
           task.task_id?.toString().includes(searchTerm) ||
           task.annotator_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          task.annotator_id?.toString().includes(searchTerm)
+          task.annotator_id?.toString().includes(searchTerm) ||
+          task.reviewer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          task.reviewer_id?.toString().includes(searchTerm)
       )
       setFilteredData(filtered)
     } else {
@@ -90,7 +92,7 @@ export default function TaskLevel() {
     {
       field: 'annotator_name',
       headerName: 'Annotator',
-      width: 200,
+      width: 180,
       renderCell: (params) => (
         <Box>
           <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -98,6 +100,21 @@ export default function TaskLevel() {
           </Typography>
           <Typography variant="caption" color="text.secondary">
             ID: {params.row.annotator_id || 'N/A'}
+          </Typography>
+        </Box>
+      ),
+    },
+    {
+      field: 'reviewer_name',
+      headerName: 'Reviewer',
+      width: 180,
+      renderCell: (params) => (
+        <Box>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            {params.value || 'N/A'}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            ID: {params.row.reviewer_id || 'N/A'}
           </Typography>
         </Box>
       ),
@@ -130,6 +147,8 @@ export default function TaskLevel() {
     task_id: task.task_id,
     annotator_id: task.annotator_id,
     annotator_name: task.annotator_name,
+    reviewer_id: task.reviewer_id,
+    reviewer_name: task.reviewer_name,
     quality_dimensions: task.quality_dimensions,
   }))
 
@@ -155,7 +174,7 @@ export default function TaskLevel() {
 
           <TextField
             fullWidth
-            placeholder="Search by Task ID, Annotator Name, or Annotator ID..."
+            placeholder="Search by Task ID, Annotator, Reviewer Name or ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             InputProps={{

@@ -58,6 +58,8 @@ class OverallAggregation(BaseModel):
     """Schema for overall aggregation"""
     
     conversation_count: int = Field(..., description="Total unique conversations overall")
+    reviewer_count: int = Field(0, description="Total unique reviewers")
+    trainer_count: int = Field(0, description="Total unique trainers")
     quality_dimensions: List[QualityDimensionStats] = Field(
         default_factory=list,
         description="Overall statistics by quality dimension"
@@ -78,6 +80,8 @@ class TaskLevelInfo(BaseModel):
     task_id: Optional[int] = Field(None, description="Task ID (conversation_id)")
     annotator_id: Optional[int] = Field(None, description="Annotator ID (human_role_id)")
     annotator_name: Optional[str] = Field(None, description="Annotator name from contributor table")
+    reviewer_id: Optional[int] = Field(None, description="Reviewer ID")
+    reviewer_name: Optional[str] = Field(None, description="Reviewer name from contributor table")
     quality_dimensions: List[QualityDimensionDetail] = Field(
         default_factory=list,
         description="Quality dimensions for this task"
