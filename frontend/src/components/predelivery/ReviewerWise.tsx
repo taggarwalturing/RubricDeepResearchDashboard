@@ -2,39 +2,75 @@ import { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
   Paper,
-  TableSortLabel,
+  Autocomplete,
+  TextField,
+  Chip,
+  IconButton,
+  Button,
+  Slider,
+  Popover,
+  Divider,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Select,
+  FormControl,
+  InputLabel,
 } from '@mui/material'
-import { EmojiEvents as TrophyIcon } from '@mui/icons-material'
-import { getReviewerStats } from '../../services/api'
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
+import SortIcon from '@mui/icons-material/Sort'
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
+import FilterListIcon from '@mui/icons-material/FilterList'
+import { DataGrid, GridColDef, GridSortModel } from '@mui/x-data-grid'
+import { getReviewerStats, getClientDeliveryReviewerStats } from '../../services/api'
 import type { ReviewerAggregation } from '../../types'
 import LoadingSpinner from '../LoadingSpinner'
 import ErrorDisplay from '../ErrorDisplay'
 
-type Order = 'asc' | 'desc'
+interface NumericFilter {
+  min: number
+  max: number
+  currentRange: [number, number]
+}
 
-export default function ReviewerWise() {
+interface TextFilter {
+  operator: 'contains' | 'equals' | 'startsWith' | 'endsWith'
+  value: string
+}
+
+interface ReviewerWiseProps {
+  isClientDelivery?: boolean
+}
+
+export default function ReviewerWise({ isClientDelivery = false }: ReviewerWiseProps) {
   const [data, setData] = useState<ReviewerAggregation[]>([])
+  const [filteredData, setFilteredData] = useState<ReviewerAggregation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(20)
-  const [orderBy, setOrderBy] = useState<string>('reviewer_name')
-  const [order, setOrder] = useState<Order>('asc')
+  const [selectedReviewers, setSelectedReviewers] = useState<string[]>([])
+  const [numericFilters, setNumericFilters] = useState<Record<string, NumericFilter>>({})
+  const [textFilters, setTextFilters] = useState<Record<string, TextFilter>>({})
+  const [filterAnchorEl, setFilterAnchorEl] = useState<HTMLElement | null>(null)
+  const [activeFilterColumn, setActiveFilterColumn] = useState<string>('')
+  const [sortModel, setSortModel] = useState<GridSortModel>([])
+  const [paginationModel, setPaginationModel] = useState({
+    pageSize: 20,
+    page: 0,
+  })
 
   const fetchData = async () => {
     try {
       setLoading(true)
       setError(null)
-      const result = await getReviewerStats({})
+      
+      const filters: any = {}      
+      const result = isClientDelivery 
+        ? await getClientDeliveryReviewerStats(filters)
+        : await getReviewerStats(filters)
       setData(result)
+      setFilteredData(result)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch reviewer statistics')
     } finally {
@@ -44,7 +80,142 @@ export default function ReviewerWise() {
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [isClientDelivery])
+
+  // Initialize numeric filters when data changes
+  const initializeNumericFilters = (reviewers: ReviewerAggregation[]) => {
+    const filters: Record<string, NumericFilter> = {}
+
+    if (reviewers.length === 0) return filters
+
+    // Initialize filter for task_score
+    const taskScores = reviewers
+      .map(r => r.average_task_score)
+      .filter(val => val !== null && val !== undefined && typeof val !== 'string')
+      .map(val => typeof val === 'string' ? parseFloat(val) : val)
+    if (taskScores.length > 0) {
+      const minScore = Math.min(...taskScores)
+      const maxScore = Math.max(...taskScores)
+      filters['task_score'] = { min: minScore, max: maxScore, currentRange: [minScore, maxScore] }
+    }
+
+    // Initialize filter for task_count
+    const taskCounts = reviewers.map(r => r.task_count).filter(val => val !== null && val !== undefined)
+    if (taskCounts.length > 0) {
+      const minTask = Math.min(...taskCounts)
+      const maxTask = Math.max(...taskCounts)
+      filters['task_count'] = { min: minTask, max: maxTask, currentRange: [minTask, maxTask] }
+    }
+
+    // Initialize filters for quality dimensions
+    const allQualityDims = Array.from(new Set(reviewers.flatMap(r => r.quality_dimensions.map(qd => qd.name))))
+    
+    allQualityDims.forEach(dimName => {
+      const scores = reviewers
+        .flatMap(r => r.quality_dimensions.filter(qd => qd.name === dimName).map(qd => qd.average_score))
+        .filter(val => val !== null && val !== undefined)
+      
+      if (scores.length > 0) {
+        const minScore = Math.min(...scores)
+        const maxScore = Math.max(...scores)
+        filters[`qd_${dimName}`] = { min: minScore, max: maxScore, currentRange: [minScore, maxScore] }
+      }
+    })
+
+    return filters
+  }
+
+  useEffect(() => {
+    if (data.length > 0) {
+      const initialFilters = initializeNumericFilters(data)
+      setNumericFilters(initialFilters)
+    }
+  }, [data])
+
+  // Apply all filters (search + text + numeric)
+  useEffect(() => {
+    let filtered = [...data]
+
+    // Apply search filter (from Autocomplete)
+    if (selectedReviewers.length > 0) {
+      filtered = filtered.filter(reviewer => {
+        const name = reviewer.reviewer_name || `ID: ${reviewer.reviewer_id}`
+        const email = reviewer.reviewer_email ? ` (${reviewer.reviewer_email})` : ''
+        const fullOption = `${name}${email}`
+        return selectedReviewers.includes(fullOption)
+      })
+    }
+
+    // Apply text filters
+    Object.entries(textFilters).forEach(([key, filter]) => {
+      if (filter.value.trim()) {
+        filtered = filtered.filter((reviewer) => {
+          let fieldValue: string = ''
+
+          if (key === 'reviewer_name') {
+            fieldValue = reviewer.reviewer_name || `ID: ${reviewer.reviewer_id}`
+          } else if (key === 'reviewer_email') {
+            fieldValue = reviewer.reviewer_email || ''
+          }
+
+          const searchValue = filter.value.toLowerCase()
+          const targetValue = fieldValue.toLowerCase()
+
+          switch (filter.operator) {
+            case 'contains':
+              return targetValue.includes(searchValue)
+            case 'equals':
+              return targetValue === searchValue
+            case 'startsWith':
+              return targetValue.startsWith(searchValue)
+            case 'endsWith':
+              return targetValue.endsWith(searchValue)
+            default:
+              return true
+          }
+        })
+      }
+    })
+
+    // Apply numeric range filters (only if actively modified)
+    Object.entries(numericFilters).forEach(([key, filter]) => {
+      const isFilterActive = filter.currentRange[0] !== filter.min || filter.currentRange[1] !== filter.max
+
+      if (isFilterActive) {
+        filtered = filtered.filter((reviewer) => {
+          let value: number | null = null
+
+          if (key === 'task_score') {
+            // Handle task_score - convert from string if needed
+            const taskScore = reviewer.average_task_score
+            if (taskScore !== null && taskScore !== undefined && typeof taskScore !== 'string') {
+              value = typeof taskScore === 'string' ? parseFloat(taskScore) : taskScore
+            }
+          } else if (key === 'task_count') {
+            value = reviewer.task_count
+          } else if (key.startsWith('qd_')) {
+            const dimName = key.substring(3)
+            const qd = reviewer.quality_dimensions.find(q => q.name === dimName)
+            value = qd ? qd.average_score : null
+          }
+
+          if (value === null || value === undefined || isNaN(value)) return false
+          return value >= filter.currentRange[0] && value <= filter.currentRange[1]
+        })
+      }
+    })
+
+    setFilteredData(filtered)
+    setPaginationModel({ ...paginationModel, page: 0 })
+  }, [selectedReviewers, textFilters, numericFilters, data])
+
+  // Get unique reviewer names for autocomplete
+  // Create search options including name and email
+  const reviewerOptions = data.map(r => {
+    const name = r.reviewer_name || `ID: ${r.reviewer_id}`
+    const email = r.reviewer_email ? ` (${r.reviewer_email})` : ''
+    return `${name}${email}`
+  })
 
   if (loading) {
     return <LoadingSpinner message="Loading reviewer statistics..." />
@@ -54,185 +225,785 @@ export default function ReviewerWise() {
     return <ErrorDisplay message={error} onRetry={fetchData} />
   }
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage)
-  }
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10))
-    setPage(0)
-  }
-
-  const handleRequestSort = (property: string) => {
-    const isAsc = orderBy === property && order === 'asc'
-    setOrder(isAsc ? 'desc' : 'asc')
-    setOrderBy(property)
-  }
-
-  // Get all unique quality dimension names from ALL reviewers (not just first one)
+  // Get all unique quality dimension names
   const allQualityDimensionNames = Array.from(
     new Set(
-      data.flatMap((reviewer) => reviewer.quality_dimensions.map((qd) => qd.name))
+      filteredData.flatMap((reviewer) => reviewer.quality_dimensions.map((qd) => qd.name))
     )
   ).sort()
 
-  // Sort data
-  const sortedData = [...data].sort((a, b) => {
-    if (orderBy === 'reviewer_name') {
-      const compareValue = (a.reviewer_name || '').localeCompare(b.reviewer_name || '')
-      return order === 'asc' ? compareValue : -compareValue
-    } else if (orderBy === 'conversation_count') {
-      return order === 'asc' 
-        ? a.conversation_count - b.conversation_count
-        : b.conversation_count - a.conversation_count
-    } else {
-      // Sort by quality dimension
-      const aQD = a.quality_dimensions.find(qd => qd.name === orderBy)
-      const bQD = b.quality_dimensions.find(qd => qd.name === orderBy)
-      const aValue = aQD?.average_score ?? -1
-      const bValue = bQD?.average_score ?? -1
-      return order === 'asc' ? aValue - bValue : bValue - aValue
-    }
-  })
+  // Helper functions for filters
+  const resetNumericFilter = (columnKey: string) => {
+    setNumericFilters(prev => {
+      if (!prev[columnKey]) return prev
+      return {
+        ...prev,
+        [columnKey]: {
+          ...prev[columnKey],
+          currentRange: [prev[columnKey].min, prev[columnKey].max]
+        }
+      }
+    })
+  }
 
-  const paginatedData = sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+  const handleSort = (field: string, direction: 'asc' | 'desc') => {
+    setSortModel([{ field, sort: direction }])
+    setFilterAnchorEl(null)
+    setActiveFilterColumn('')
+  }
+
+  // Custom header renderer with dropdown arrow
+  const renderHeaderWithDropdown = (headerName: string, _isNumeric: boolean = false, fieldKey: string = '') => () => {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          width: '100%',
+          gap: 0.5,
+          py: 1,
+        }}
+      >
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation()
+            if (fieldKey) {
+              setFilterAnchorEl(e.currentTarget)
+              setActiveFilterColumn(fieldKey)
+            } else {
+              const button = e.currentTarget.closest('.MuiDataGrid-columnHeader')?.querySelector('.MuiDataGrid-menuIcon button') as HTMLButtonElement
+              if (button) button.click()
+            }
+          }}
+          sx={{
+            padding: 0,
+            minWidth: 'auto',
+            color: '#6B7280',
+            '&:hover': {
+              color: '#374151',
+              backgroundColor: 'transparent',
+            },
+          }}
+        >
+          <ArrowDropDownIcon fontSize="small" />
+        </IconButton>
+        <Typography
+          variant="caption"
+          sx={{
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            fontSize: '0.75rem',
+            whiteSpace: 'nowrap',
+            overflow: 'visible',
+          }}
+        >
+          {headerName}
+        </Typography>
+      </Box>
+    )
+  };
+
+  // Calculate column width based on content - exact fit
+  const calculateColumnWidth = (headerName: string, data: any[], fieldName: string) => {
+    // Calculate header width (including dropdown arrow icon)
+    const headerWidth = headerName.length * 9 + 50
+    
+    // Calculate max content width
+    let maxContentWidth = headerWidth
+    if (data.length > 0) {
+      const contentLengths = data.map(row => {
+        const value = row[fieldName]
+        return String(value || '').length * 8.5 + 16
+      })
+      maxContentWidth = Math.max(headerWidth, ...contentLengths)
+    }
+    
+    // Return exact width needed (no artificial max cap)
+    return Math.max(maxContentWidth, 100)
+  }
+
+  // Build columns
+  const columns: GridColDef[] = [
+    {
+      field: 'reviewer_name',
+      headerName: 'Reviewer',
+      width: calculateColumnWidth('Reviewer', filteredData, 'reviewer_name'),
+      align: 'center' as const,
+      headerAlign: 'left' as const,
+      renderHeader: renderHeaderWithDropdown('Reviewer', false, 'reviewer_name'),
+      renderCell: (params) => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+          <Typography variant="body2" sx={{ fontWeight: 600, color: '#1F2937' }}>
+            {params.value || 'Unknown'}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+            ID: {params.row.reviewer_id || 'N/A'}
+          </Typography>
+        </Box>
+      ),
+    },
+    {
+      field: 'reviewer_email',
+      headerName: 'Reviewer Email',
+      width: Math.max(calculateColumnWidth('Reviewer Email', filteredData, 'reviewer_email'), 200),
+      align: 'center' as const,
+      headerAlign: 'left' as const,
+      renderHeader: renderHeaderWithDropdown('Reviewer Email', false, 'reviewer_email'),
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{ color: '#1F2937', textAlign: 'center', width: '100%', fontSize: '0.875rem' }}>
+          {params.value || 'N/A'}
+        </Typography>
+      ),
+    },
+    {
+      field: 'task_score',
+      headerName: 'Task Score',
+      width: calculateColumnWidth('Task Score', filteredData, 'task_score'),
+      type: 'number',
+      align: 'center' as const,
+      headerAlign: 'left' as const,
+      renderHeader: renderHeaderWithDropdown('Task Score', true, 'task_score'),
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{ fontWeight: 600, color: '#1F2937', textAlign: 'center', width: '100%' }}>
+          {params.value !== null && params.value !== undefined ? params.value : 'N/A'}
+        </Typography>
+      ),
+    },
+    {
+      field: 'task_count',
+      headerName: 'Total Tasks',
+      width: calculateColumnWidth('Total Tasks', filteredData, 'task_count'),
+      type: 'number',
+      align: 'center' as const,
+      headerAlign: 'left' as const,
+      renderHeader: renderHeaderWithDropdown('Total Tasks', true, 'task_count'),
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{ fontWeight: 600, color: '#1F2937', textAlign: 'center', width: '100%' }}>
+          {params.value}
+        </Typography>
+      ),
+    },
+    ...allQualityDimensionNames.map((dimName) => ({
+      field: `qd_${dimName}`,
+      headerName: dimName,
+      width: Math.max(dimName.length * 9 + 50, 100),
+      align: 'center' as const,
+      headerAlign: 'left' as const,
+      sortable: true,
+      filterable: true,
+      renderHeader: renderHeaderWithDropdown(dimName, true, `qd_${dimName}`),
+      renderCell: (params: any) => (
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 600,
+            color: params.value !== 'N/A' ? '#1F2937' : 'text.secondary',
+            textAlign: 'center',
+            width: '100%',
+          }}
+        >
+          {params.value}
+        </Typography>
+      ),
+    })),
+  ]
+
+  // Check if any filters are active
+  const hasActiveFilters = () => {
+    // Check text filters (with safety check)
+    const hasTextFilters = textFilters && Object.values(textFilters).some(filter => filter.value.trim() !== '')
+    
+    // Check numeric filters (with safety check)
+    const hasNumericFilters = numericFilters && Object.values(numericFilters).some(filter =>
+      filter.currentRange[0] !== filter.min || filter.currentRange[1] !== filter.max
+    )
+    
+    return hasTextFilters || hasNumericFilters
+  }
+
+  // Build rows
+  const rows = filteredData.map((reviewer, index) => {
+    const row: any = {
+      id: index,
+      reviewer_name: reviewer.reviewer_name,
+      reviewer_id: reviewer.reviewer_id,
+      reviewer_email: reviewer.reviewer_email,
+      task_score: reviewer.average_task_score?.toFixed(2) || 'N/A',
+      task_count: reviewer.task_count,
+    }
+    
+    allQualityDimensionNames.forEach((dimName) => {
+      const qd = reviewer.quality_dimensions.find(q => q.name === dimName)
+      row[`qd_${dimName}`] = qd?.average_score?.toFixed(2) || 'N/A'
+    })
+    
+    return row
+  })
 
   return (
     <Box>
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ overflowX: 'auto' }}>
-          <Table sx={{ minWidth: 800 }}>
-            <TableHead sx={{ backgroundColor: '#EAEDED' }}>
-              <TableRow>
-                <TableCell 
-                  sx={{ 
-                    fontWeight: 600, 
-                    textTransform: 'uppercase', 
-                    fontSize: '0.75rem', 
-                    minWidth: 180,
-                    position: 'sticky',
-                    left: 0,
-                    backgroundColor: '#EAEDED',
-                    zIndex: 3,
-                    borderRight: '2px solid #E2E8F0',
+        <Box sx={{ p: 2, backgroundColor: '#F7F7F7', display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+          <Box sx={{ flex: 1 }}>
+            <Autocomplete
+            multiple
+            options={reviewerOptions}
+            value={selectedReviewers}
+            onChange={(_event, newValue) => setSelectedReviewers(newValue)}
+            filterOptions={(options, { inputValue }) => {
+              // Custom filter to search in entire option string (includes email)
+              const searchTerm = inputValue.toLowerCase()
+              return options.filter(option => 
+                option.toLowerCase().includes(searchTerm)
+              )
+            }}
+            renderOption={(props, option) => {
+              const { key, ...otherProps } = props
+              return (
+                <li 
+                  {...otherProps} 
+                  key={key || option}
+                  style={{ 
+                    padding: 0,
+                    display: 'block',
+                    width: '100%',
                   }}
                 >
-                  <TableSortLabel
-                    active={orderBy === 'reviewer_name'}
-                    direction={orderBy === 'reviewer_name' ? order : 'asc'}
-                    onClick={() => handleRequestSort('reviewer_name')}
+                  <Typography
                     sx={{
-                      '& .MuiTableSortLabel-icon': {
-                        color: '#4F7DF3 !important',
+                      padding: '8px 12px',
+                      fontSize: '12px',
+                      display: 'block',
+                      width: '100%',
+                      whiteSpace: 'normal',
+                      wordWrap: 'break-word',
+                    }}
+                  >
+                    {option}
+                  </Typography>
+                </li>
+              )
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                variant="outlined"
+                placeholder="Search and select reviewers..."
+                size="small"
+                sx={{ 
+                  backgroundColor: 'white',
+                  '& .MuiInputBase-input': {
+                    fontSize: '12px',
+                  }
+                }}
+              />
+            )}
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => (
+                <Chip
+                  label={option}
+                  {...getTagProps({ index })}
+                  size="small"
+                  sx={{
+                    backgroundColor: '#E5E7EB',
+                    color: '#374151',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    '& .MuiChip-label': {
+                      fontSize: '0.75rem',
+                      px: 1,
+                    },
+                    '& .MuiChip-deleteIcon': {
+                      color: '#6B7280',
+                      fontSize: '0.9rem',
+                      '&:hover': {
+                        color: '#374151',
                       },
-                    }}
-                  >
-                    Reviewer
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', minWidth: 120 }}>
-                  <TableSortLabel
-                    active={orderBy === 'conversation_count'}
-                    direction={orderBy === 'conversation_count' ? order : 'asc'}
-                    onClick={() => handleRequestSort('conversation_count')}
-                    sx={{
-                      '& .MuiTableSortLabel-icon': {
-                        color: '#4F7DF3 !important',
+                    },
+                  }}
+                />
+              ))
+            }
+            sx={{
+              '& .MuiAutocomplete-tag': {
+                margin: '2px',
+              },
+              '& .MuiAutocomplete-option': {
+                fontSize: '12px',
+                padding: '0 !important',
+                minHeight: '40px',
+              },
+            }}
+          />
+          </Box>
+          
+          {/* Individual Filter Chips */}
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            {/* Text Filters */}
+            {textFilters && Object.entries(textFilters).map(([key, filter]) => {
+              if (!filter.value.trim()) return null
+              const columnName = key === 'reviewer_name' ? 'Reviewer' : 
+                               key === 'reviewer_email' ? 'Reviewer Email' : key
+              return (
+                <Chip
+                  key={`text-${key}`}
+                  label={`${columnName}: ${filter.value}`}
+                  size="small"
+                  onDelete={() => {
+                    const newFilters = { ...textFilters }
+                    delete newFilters[key]
+                    setTextFilters(newFilters)
+                  }}
+                  sx={{
+                    backgroundColor: '#EEF2FF',
+                    color: '#2E5CFF',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    '& .MuiChip-deleteIcon': {
+                      color: '#2E5CFF',
+                      '&:hover': {
+                        color: '#1E40AF',
                       },
-                    }}
-                  >
-                    Total Tasks
-                  </TableSortLabel>
-                </TableCell>
-                {/* Dynamic quality dimension columns - from ALL reviewers */}
-                {allQualityDimensionNames.map((dimName, idx) => (
-                  <TableCell
-                    key={idx}
-                    align="right"
-                    sx={{ fontWeight: 600, textTransform: 'uppercase', fontSize: '0.75rem', minWidth: 150 }}
-                  >
-                    <TableSortLabel
-                      active={orderBy === dimName}
-                      direction={orderBy === dimName ? order : 'asc'}
-                      onClick={() => handleRequestSort(dimName)}
-                      sx={{
-                        '& .MuiTableSortLabel-icon': {
-                          color: '#4F7DF3 !important',
-                        },
-                      }}
-                    >
-                      {dimName}
-                    </TableSortLabel>
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginatedData.map((reviewer, index) => {
-                // Create a map of reviewer's quality dimensions for quick lookup
-                const reviewerQDMap = new Map(
-                  reviewer.quality_dimensions.map((qd) => [qd.name, qd])
-                )
-                return (
-                  <TableRow
-                    key={index}
-                    sx={{
-                      '&:hover': { backgroundColor: '#F9FAFB' },
-                      borderBottom: '1px solid #E2E8F0',
-                    }}
-                  >
-                    <TableCell 
-                      sx={{ 
-                        fontWeight: 500,
-                        position: 'sticky',
-                        left: 0,
-                        backgroundColor: 'white',
-                        zIndex: 2,
-                        borderRight: '2px solid #E2E8F0',
-                      }}
-                    >
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {reviewer.reviewer_name || 'Unknown'}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          ID: {reviewer.reviewer_id || 'N/A'}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 600 }}>
-                      {reviewer.conversation_count}
-                    </TableCell>
-                    {/* Quality dimension average scores - display ALL dimensions in order */}
-                    {allQualityDimensionNames.map((dimName, idx) => {
-                      const qd = reviewerQDMap.get(dimName)
-                      return (
-                        <TableCell key={idx} align="right" sx={{ color: '#1F2937', fontWeight: 600 }}>
-                          {qd?.average_score?.toFixed(2) || 'N/A'}
-                        </TableCell>
-                      )
-                    })}
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                    },
+                  }}
+                />
+              )
+            })}
+            
+            {/* Numeric Filters */}
+            {numericFilters && Object.entries(numericFilters).map(([key, filter]) => {
+              const isActive = filter.currentRange[0] !== filter.min || filter.currentRange[1] !== filter.max
+              if (!isActive) return null
+              
+              let columnName = key
+              if (key === 'task_count') {
+                columnName = 'Total Tasks'
+              } else if (key === 'task_score') {
+                columnName = 'Task Score'
+              } else if (key.startsWith('qd_')) {
+                columnName = key.substring(3)
+              }
+              
+              const displayValue = `${filter.currentRange[0]}-${filter.currentRange[1]}`
+              
+              return (
+                <Chip
+                  key={`numeric-${key}`}
+                  label={`${columnName}: ${displayValue}`}
+                  size="small"
+                  onDelete={() => {
+                    const newFilters = { ...numericFilters }
+                    newFilters[key] = {
+                      ...filter,
+                      currentRange: [filter.min, filter.max]
+                    }
+                    setNumericFilters(newFilters)
+                  }}
+                  sx={{
+                    backgroundColor: '#EEF2FF',
+                    color: '#2E5CFF',
+                    fontWeight: 600,
+                    fontSize: '0.75rem',
+                    '& .MuiChip-deleteIcon': {
+                      color: '#2E5CFF',
+                      '&:hover': {
+                        color: '#1E40AF',
+                      },
+                    },
+                  }}
+                />
+              )
+            })}
+            
+            {/* Search Selection Chips */}
+            {selectedReviewers.length > 0 && selectedReviewers.map((reviewer, index) => (
+              <Chip
+                key={`search-${index}`}
+                label={`Selected: ${reviewer}`}
+                size="small"
+                onDelete={() => {
+                  setSelectedReviewers(prev => prev.filter((_, i) => i !== index))
+                }}
+                sx={{
+                  backgroundColor: '#F3F4F6',
+                  color: '#1F2937',
+                  fontWeight: 600,
+                  fontSize: '0.75rem',
+                  '& .MuiChip-deleteIcon': {
+                    color: '#6B7280',
+                    '&:hover': {
+                      color: '#1F2937',
+                    },
+                  },
+                }}
+              />
+            ))}
+            
+            {/* Clear All Button */}
+            {hasActiveFilters() && (
+              <Chip
+                icon={<FilterListIcon />}
+                label="Clear All"
+                size="small"
+                onClick={() => {
+                  setSelectedReviewers([])
+                  setTextFilters({})
+                  const resetFilters = initializeNumericFilters(data)
+                  setNumericFilters(resetFilters)
+                  setSortModel([])                }}
+                sx={{
+                  backgroundColor: '#FEE2E2',
+                  color: '#DC2626',
+                  fontWeight: 600,
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  '& .MuiChip-icon': {
+                    color: '#DC2626',
+                  },
+                  '&:hover': {
+                    backgroundColor: '#FECACA',
+                  },
+                }}
+              />
+            )}
+          </Box>
+        </Box>
 
-        <TablePagination
-          rowsPerPageOptions={[10, 20, 50]}
-          component="div"
-          count={data.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          sx={{
-            borderTop: '1px solid #EAEDED',
-          }}
-        />
+        <Box sx={{ height: 600, width: '100%' }}>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={[10, 20, 50, 100]}
+            disableRowSelectionOnClick
+            disableColumnMenu={true}
+            sortModel={sortModel}
+            onSortModelChange={setSortModel}
+            sx={{
+              border: 'none',
+              backgroundColor: 'white',
+              '& .MuiDataGrid-cell': {
+                borderBottom: '1px solid #E5E7EB',
+                color: '#111827',
+                fontSize: '0.875rem',
+                paddingX: 1.5,
+              },
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: '#F9FAFB',
+                borderBottom: '1px solid #E5E7EB',
+                minHeight: '48px !important',
+                maxHeight: '48px !important',
+              },
+              '& .MuiDataGrid-columnHeader': {
+                cursor: 'pointer',
+                paddingX: 1.5,
+                '&:hover': {
+                  backgroundColor: '#F3F4F6',
+                },
+                '&:focus': {
+                  outline: 'none',
+                },
+              },
+              '& .MuiDataGrid-columnHeaderTitle': {
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                color: '#6B7280',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              },
+              '& .MuiDataGrid-columnSeparator': {
+                display: 'none',
+              },
+              '& .MuiDataGrid-menuIcon': {
+                visibility: 'hidden',
+                width: 0,
+                opacity: 0,
+              },
+              '& .MuiDataGrid-iconButtonContainer': {
+                visibility: 'hidden',
+                width: 0,
+              },
+              '& .MuiDataGrid-row': {
+                '&:hover': {
+                  backgroundColor: '#F9FAFB',
+                },
+                '&:last-child .MuiDataGrid-cell': {
+                  borderBottom: 'none',
+                },
+              },
+              '& .MuiDataGrid-footerContainer': {
+                borderTop: '1px solid #E5E7EB',
+                backgroundColor: '#F9FAFB',
+              },
+              '& .MuiDataGrid-sortIcon': {
+                display: 'none',
+              },
+            }}
+          />
+        </Box>
       </Paper>
+
+      {/* Filter Popover */}
+      <Popover
+        open={Boolean(filterAnchorEl) && Boolean(activeFilterColumn)}
+        anchorEl={filterAnchorEl}
+        onClose={() => {
+          setFilterAnchorEl(null)
+          setActiveFilterColumn('')
+        }}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              mt: 1,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              borderRadius: 2,
+            }
+          }
+        }}
+      >
+        {activeFilterColumn && (
+          <Box sx={{ minWidth: 320 }}>
+            {/* Sort Options - Show for all columns */}
+            <Box sx={{ p: 2 }}>
+              <Typography 
+                variant="subtitle2" 
+                sx={{ 
+                  fontWeight: 600, 
+                  mb: 1.5, 
+                  color: '#1F2937',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                }}
+              >
+                <SortIcon fontSize="small" />
+                Sort
+              </Typography>
+              
+              <MenuItem
+                onClick={() => handleSort(activeFilterColumn.startsWith('qd_') ? activeFilterColumn : activeFilterColumn, 'asc')}
+                sx={{ borderRadius: 1, mb: 0.5 }}
+              >
+                <ListItemIcon>
+                  <ArrowUpwardIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Sort Ascending</ListItemText>
+              </MenuItem>
+              
+              <MenuItem
+                onClick={() => handleSort(activeFilterColumn.startsWith('qd_') ? activeFilterColumn : activeFilterColumn, 'desc')}
+                sx={{ borderRadius: 1 }}
+              >
+                <ListItemIcon>
+                  <ArrowDownwardIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Sort Descending</ListItemText>
+              </MenuItem>
+            </Box>
+
+            {/* Text Filter - Show for reviewer_name and reviewer_email columns */}
+            {(activeFilterColumn === 'reviewer_name' || activeFilterColumn === 'reviewer_email') && (
+              <>
+                <Divider />
+                <Box sx={{ p: 2 }}>
+                  <Typography 
+                    variant="subtitle2" 
+                    sx={{ 
+                      fontWeight: 600, 
+                      mb: 1.5, 
+                      color: '#1F2937',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                    }}
+                  >
+                    <FilterListIcon fontSize="small" />
+                    Filter
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel>Operator</InputLabel>
+                      <Select
+                        value={textFilters[activeFilterColumn]?.operator || 'contains'}
+                        label="Operator"
+                        onChange={(e) => {
+                          setTextFilters(prev => ({
+                            ...prev,
+                            [activeFilterColumn]: {
+                              ...prev[activeFilterColumn],
+                              operator: e.target.value as any,
+                              value: prev[activeFilterColumn]?.value || ''
+                            }
+                          }))
+                        }}
+                      >
+                        <MenuItem value="contains">Contains</MenuItem>
+                        <MenuItem value="equals">Equals</MenuItem>
+                        <MenuItem value="startsWith">Starts With</MenuItem>
+                        <MenuItem value="endsWith">Ends With</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Filter Value"
+                      value={textFilters[activeFilterColumn]?.value || ''}
+                      onChange={(e) => {
+                        setTextFilters(prev => ({
+                          ...prev,
+                          [activeFilterColumn]: {
+                            operator: prev[activeFilterColumn]?.operator || 'contains',
+                            value: e.target.value
+                          }
+                        }))
+                      }}
+                      placeholder="Enter filter value..."
+                    />
+                  </Box>
+                </Box>
+              </>
+            )}
+
+            {/* Filter Range - Only show for numeric columns */}
+            {numericFilters[activeFilterColumn] && (
+              <>
+                <Divider />
+                <Box sx={{ p: 3 }}>
+                  <Typography 
+                    variant="subtitle2" 
+                    sx={{ 
+                      fontWeight: 600, 
+                      mb: 2, 
+                      color: '#1F2937',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                    }}
+                  >
+                    <FilterListIcon fontSize="small" />
+                    Filter Range
+                  </Typography>
+                  
+                  <Slider
+                    value={numericFilters[activeFilterColumn].currentRange}
+                    onChange={(_, newValue) => {
+                      setNumericFilters(prev => ({
+                        ...prev,
+                        [activeFilterColumn]: {
+                          ...prev[activeFilterColumn],
+                          currentRange: newValue as [number, number]
+                        }
+                      }))
+                    }}
+                    valueLabelDisplay="on"
+                    min={numericFilters[activeFilterColumn].min}
+                    max={numericFilters[activeFilterColumn].max}
+                    step={activeFilterColumn === 'task_count' ? 1 : 0.01}
+                    valueLabelFormat={(value) => 
+                      activeFilterColumn === 'task_count' ? value.toString() : value.toFixed(2)
+                    }
+                    sx={{
+                      color: '#2E5CFF',
+                      '& .MuiSlider-thumb': {
+                        backgroundColor: '#2E5CFF',
+                      },
+                      '& .MuiSlider-track': {
+                        backgroundColor: '#2E5CFF',
+                      },
+                      '& .MuiSlider-rail': {
+                        backgroundColor: '#E5E7EB',
+                      },
+                      '& .MuiSlider-valueLabel': {
+                        backgroundColor: '#2E5CFF',
+                        borderRadius: 1,
+                        padding: '4px 8px',
+                      },
+                    }}
+                  />
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                    <Typography variant="body2" sx={{ color: '#6B7280' }}>
+                      Min: {activeFilterColumn === 'task_count' 
+                        ? numericFilters[activeFilterColumn].min 
+                        : numericFilters[activeFilterColumn].min.toFixed(2)}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#6B7280' }}>
+                      Max: {activeFilterColumn === 'task_count' 
+                        ? numericFilters[activeFilterColumn].max 
+                        : numericFilters[activeFilterColumn].max.toFixed(2)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </>
+            )}
+
+            <Divider />
+
+            {/* Action Buttons */}
+            <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', gap: 1 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => {
+                  // Reset numeric filter if exists
+                  if (numericFilters[activeFilterColumn]) {
+                    resetNumericFilter(activeFilterColumn)
+                  }
+                  // Reset text filter if exists
+                  if (textFilters[activeFilterColumn]) {
+                    setTextFilters(prev => {
+                      const newFilters = { ...prev }
+                      delete newFilters[activeFilterColumn]
+                      return newFilters
+                    })
+                  }
+                  // Reset sort
+                  setSortModel([])
+                }}
+                sx={{
+                  color: '#6B7280',
+                  borderColor: '#D1D5DB',
+                  '&:hover': {
+                    borderColor: '#9CA3AF',
+                    backgroundColor: '#F9FAFB',
+                  },
+                }}
+              >
+                Reset All
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => {
+                  setFilterAnchorEl(null)
+                  setActiveFilterColumn('')
+                }}
+                sx={{
+                  backgroundColor: '#2E5CFF',
+                  '&:hover': {
+                    backgroundColor: '#2347D5',
+                  },
+                }}
+              >
+                Apply
+              </Button>
+            </Box>
+          </Box>
+        )}
+      </Popover>
     </Box>
   )
 }
-

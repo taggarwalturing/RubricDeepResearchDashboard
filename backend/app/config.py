@@ -34,6 +34,25 @@ class Settings(BaseSettings):
     default_page_size: int = 100
     max_page_size: int = 1000
     
+    # PostgreSQL Settings
+    postgres_host: str = "localhost"
+    postgres_port: int = 5432
+    postgres_user: str = "postgres"
+    postgres_password: str = "postgres"
+    postgres_db: str = "RubricDeepResearch"
+    
+    # Data Sync Settings
+    sync_interval_hours: int = 1
+    initial_sync_on_startup: bool = True
+    
+    # S3 Settings
+    s3_bucket: str = "agi-ds-turing"
+    s3_prefix: str = "Nova Deep Research - Turing Scale-Up/outputData/"
+    s3_aws_profile: str = "amazon"  # AWS CLI profile name
+    
+    # Project Settings
+    project_start_date: str = "2025-09-26"  # Format: YYYY-MM-DD
+    
     class Config:
         env_file = ".env"
         case_sensitive = False

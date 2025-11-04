@@ -1,34 +1,43 @@
 export interface QualityDimensionStats {
   name: string
   average_score: number | null
-  score_count: number
+  task_count: number
 }
 
 export interface DomainAggregation {
   domain: string | null
-  conversation_count: number
+  task_count: number
+  average_task_score: number | null
   quality_dimensions: QualityDimensionStats[]
 }
 
 export interface ReviewerAggregation {
   reviewer_id: number | null
   reviewer_name: string | null
-  conversation_count: number
+  reviewer_email: string | null
+  task_count: number
+  average_task_score: number | null
   quality_dimensions: QualityDimensionStats[]
 }
 
 export interface TrainerLevelAggregation {
-  trainer_level_id: number | null
+  trainer_id: number | null
   trainer_name: string | null
-  conversation_count: number
+  trainer_email: string | null
+  task_count: number
+  average_task_score: number | null
   quality_dimensions: QualityDimensionStats[]
 }
 
 export interface OverallAggregation {
-  conversation_count: number
+  task_count: number
   reviewer_count: number
   trainer_count: number
+  domain_count: number
+  delivered_tasks: number
+  delivered_files: number
   quality_dimensions: QualityDimensionStats[]
+  quality_dimensions_count?: number
 }
 
 export interface QualityDimensionDetail {
@@ -39,11 +48,17 @@ export interface QualityDimensionDetail {
 
 export interface TaskLevelInfo {
   task_id: number | null
+  task_score: number | null
   annotator_id: number | null
   annotator_name: string | null
+  annotator_email: string | null
   reviewer_id: number | null
   reviewer_name: string | null
-  quality_dimensions: QualityDimensionDetail[]
+  reviewer_email: string | null
+  colab_link: string | null
+  updated_at: string | null
+  week_number: number | null
+  quality_dimensions: Record<string, number>
 }
 
 export interface FilterParams {
@@ -54,5 +69,7 @@ export interface FilterParams {
   min_score?: number
   max_score?: number
   min_task_count?: number
+  date_from?: string
+  date_to?: string
 }
 

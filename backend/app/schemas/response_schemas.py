@@ -11,7 +11,7 @@ class QualityDimensionStats(BaseModel):
     
     name: str = Field(..., description="Quality dimension name")
     average_score: Optional[float] = Field(None, description="Average score")
-    score_count: int = Field(..., description="Number of scores recorded")
+    task_count: int = Field(..., description="Number of tasks with this quality dimension")
     
     class Config:
         json_encoders = {
@@ -23,7 +23,8 @@ class DomainAggregation(BaseModel):
     """Schema for domain-based aggregation"""
     
     domain: Optional[str] = Field(None, description="Domain name")
-    conversation_count: int = Field(..., description="Total unique conversations for this domain")
+    task_count: int = Field(..., description="Total unique tasks for this domain")
+    average_task_score: Optional[float] = Field(None, description="Average task score across all tasks in this domain")
     quality_dimensions: List[QualityDimensionStats] = Field(
         default_factory=list,
         description="Statistics by quality dimension"
@@ -35,7 +36,9 @@ class ReviewerAggregation(BaseModel):
     
     reviewer_id: Optional[int] = Field(None, description="Reviewer ID")
     reviewer_name: Optional[str] = Field(None, description="Reviewer name")
-    conversation_count: int = Field(..., description="Total unique conversations for this reviewer")
+    reviewer_email: Optional[str] = Field(None, description="Reviewer Turing email")
+    task_count: int = Field(..., description="Total unique tasks for this reviewer")
+    average_task_score: Optional[float] = Field(None, description="Average task score across all tasks by this reviewer")
     quality_dimensions: List[QualityDimensionStats] = Field(
         default_factory=list,
         description="Statistics by quality dimension"
@@ -45,9 +48,11 @@ class ReviewerAggregation(BaseModel):
 class TrainerLevelAggregation(BaseModel):
     """Schema for trainer level-based aggregation"""
     
-    trainer_level_id: Optional[int] = Field(None, description="Trainer level ID")
+    trainer_id: Optional[int] = Field(None, description="Trainer ID")
     trainer_name: Optional[str] = Field(None, description="Trainer name")
-    conversation_count: int = Field(..., description="Total unique conversations for this trainer level")
+    trainer_email: Optional[str] = Field(None, description="Trainer Turing email")
+    task_count: int = Field(..., description="Total unique tasks for this trainer")
+    average_task_score: Optional[float] = Field(None, description="Average task score across all tasks by this trainer")
     quality_dimensions: List[QualityDimensionStats] = Field(
         default_factory=list,
         description="Statistics by quality dimension"
@@ -57,13 +62,17 @@ class TrainerLevelAggregation(BaseModel):
 class OverallAggregation(BaseModel):
     """Schema for overall aggregation"""
     
-    conversation_count: int = Field(..., description="Total unique conversations overall")
+    task_count: int = Field(..., description="Total unique tasks overall")
     reviewer_count: int = Field(0, description="Total unique reviewers")
     trainer_count: int = Field(0, description="Total unique trainers")
+    domain_count: int = Field(0, description="Total unique domains")
+    delivered_tasks: int = Field(0, description="Total delivered tasks from S3 work items")
+    delivered_files: int = Field(0, description="Total distinct JSON files delivered")
     quality_dimensions: List[QualityDimensionStats] = Field(
         default_factory=list,
         description="Overall statistics by quality dimension"
     )
+    quality_dimensions_count: Optional[int] = Field(None, description="Total count of distinct quality dimensions")
 
 
 class QualityDimensionDetail(BaseModel):
@@ -78,13 +87,19 @@ class TaskLevelInfo(BaseModel):
     """Schema for task-level information"""
     
     task_id: Optional[int] = Field(None, description="Task ID (conversation_id)")
+    task_score: Optional[float] = Field(None, description="Average score for this task across all quality dimensions")
     annotator_id: Optional[int] = Field(None, description="Annotator ID (human_role_id)")
     annotator_name: Optional[str] = Field(None, description="Annotator name from contributor table")
+    annotator_email: Optional[str] = Field(None, description="Annotator Turing email")
     reviewer_id: Optional[int] = Field(None, description="Reviewer ID")
     reviewer_name: Optional[str] = Field(None, description="Reviewer name from contributor table")
-    quality_dimensions: List[QualityDimensionDetail] = Field(
-        default_factory=list,
-        description="Quality dimensions for this task"
+    reviewer_email: Optional[str] = Field(None, description="Reviewer Turing email")
+    colab_link: Optional[str] = Field(None, description="Collaboration link for the task")
+    updated_at: Optional[str] = Field(None, description="Task update date (ISO format)")
+    week_number: Optional[int] = Field(None, description="Week number from project start date")
+    quality_dimensions: dict = Field(
+        default_factory=dict,
+        description="Quality dimensions for this task as a dict {dimension_name: score}"
     )
 
 

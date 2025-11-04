@@ -182,3 +182,68 @@ export const getFilterOptions = async (): Promise<{
   }
 }
 
+// ============================================================================
+// CLIENT DELIVERY API FUNCTIONS (Delivered Tasks Only)
+// ============================================================================
+
+export const getClientDeliveryOverallStats = async (filters?: FilterParams): Promise<OverallAggregation> => {
+  const cacheKey = getCacheKey('/client-delivery/overall', filters)
+  const cached = getFromCache<OverallAggregation>(cacheKey)
+  if (cached) return cached
+  
+  const queryParams = buildQueryParams(filters)
+  const response = await apiClient.get<OverallAggregation>(`/client-delivery/overall${queryParams}`)
+  setCache(cacheKey, response.data)
+  return response.data
+}
+
+export const getClientDeliveryDomainStats = async (filters?: FilterParams): Promise<DomainAggregation[]> => {
+  const cacheKey = getCacheKey('/client-delivery/by-domain', filters)
+  const cached = getFromCache<DomainAggregation[]>(cacheKey)
+  if (cached) return cached
+  
+  const queryParams = buildQueryParams(filters)
+  const response = await apiClient.get<DomainAggregation[]>(`/client-delivery/by-domain${queryParams}`)
+  setCache(cacheKey, response.data)
+  return response.data
+}
+
+export const getClientDeliveryReviewerStats = async (filters?: FilterParams): Promise<ReviewerAggregation[]> => {
+  const cacheKey = getCacheKey('/client-delivery/by-reviewer', filters)
+  const cached = getFromCache<ReviewerAggregation[]>(cacheKey)
+  if (cached) return cached
+  
+  const queryParams = buildQueryParams(filters)
+  const response = await apiClient.get<ReviewerAggregation[]>(`/client-delivery/by-reviewer${queryParams}`)
+  setCache(cacheKey, response.data)
+  return response.data
+}
+
+export const getClientDeliveryTrainerStats = async (filters?: FilterParams): Promise<TrainerLevelAggregation[]> => {
+  const cacheKey = getCacheKey('/client-delivery/by-trainer', filters)
+  const cached = getFromCache<TrainerLevelAggregation[]>(cacheKey)
+  if (cached) return cached
+  
+  const queryParams = buildQueryParams(filters)
+  const response = await apiClient.get<TrainerLevelAggregation[]>(`/client-delivery/by-trainer${queryParams}`)
+  setCache(cacheKey, response.data)
+  return response.data
+}
+
+export interface DeliveryTrackerItem {
+  delivery_date: string
+  total_tasks: number
+  file_names: string[]
+  file_count: number
+}
+
+export const getDeliveryTracker = async (): Promise<DeliveryTrackerItem[]> => {
+  const cacheKey = '/client-delivery/tracker'
+  const cached = getFromCache<DeliveryTrackerItem[]>(cacheKey)
+  if (cached) return cached
+  
+  const response = await apiClient.get<DeliveryTrackerItem[]>('/client-delivery/tracker')
+  setCache(cacheKey, response.data)
+  return response.data
+}
+

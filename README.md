@@ -1,343 +1,477 @@
-# Amazon Delivery Analytics Dashboard
+# Amazon Delivery Dashboard
 
-A professional full-stack analytics dashboard for Amazon delivery data, featuring a FastAPI backend with BigQuery integration and a modern React frontend.
+A comprehensive full-stack dashboard for monitoring and analyzing delivery metrics, quality dimensions, and team performance.
 
-![Dashboard](https://img.shields.io/badge/Status-Production%20Ready-green)
-![Backend](https://img.shields.io/badge/Backend-FastAPI-009688)
-![Frontend](https://img.shields.io/badge/Frontend-React-61DAFB)
-![Database](https://img.shields.io/badge/Database-BigQuery-4285F4)
+## 📋 Table of Contents
 
-## Overview
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Running the Application](#running-the-application)
+- [Project Structure](#project-structure)
+- [API Documentation](#api-documentation)
+- [Data Synchronization](#data-synchronization)
+- [Troubleshooting](#troubleshooting)
 
-This application provides comprehensive analytics and visualization for delivery performance metrics, quality dimensions, reviewer statistics, trainer analytics, and task-level details.
+## 🎯 Overview
 
-### Key Features
+This dashboard provides real-time insights into delivery operations with multiple views:
 
-✨ **5 Comprehensive Dashboard Views**
-- Overall Statistics with aggregate metrics
-- Domain-based analytics
-- Reviewer performance tracking
-- Trainer effectiveness monitoring
-- Task-level detailed information
+- **Dashboard**: High-level metrics and visualizations
+- **Pre-Delivery**: Analysis of tasks before delivery (Domain, Trainer, Reviewer, Task-level views)
+- **Client Delivery**: Analysis of delivered tasks (Domain, Trainer, Reviewer, Delivery Tracker views)
 
-📊 **Rich Visualizations**
-- Interactive bar charts, line charts, and scatter plots
-- Pie charts and radar charts
-- Real-time data tables with sorting and filtering
+## ✨ Features
 
-🔍 **Advanced Filtering**
-- Multi-criteria filtering across all views
-- Score range filters
-- Task count thresholds
+### Data Views
+- **Overall Statistics**: Task counts, quality metrics, team size
+- **Domain-wise Analysis**: Performance by domain with task distribution charts
+- **Trainer-wise Analysis**: Individual trainer performance with quality breakdowns
+- **Reviewer-wise Analysis**: Reviewer metrics and quality assessments
+- **Task-level Details**: Granular task information with full quality dimension data
+- **Delivery Tracker**: Track deliveries by date with file information
 
-🎨 **Professional UI**
-- Amazon brand colors and styling
-- Responsive design (mobile, tablet, desktop)
-- Material-UI components
+### Advanced Filtering
+- **Search & Multi-select**: Search and select multiple items (domains, trainers, reviewers)
+- **Date Range Filters**: Filter data by date range (Date From/To)
+- **Text Filters**: Contains, equals, starts with, ends with operators
+- **Numeric Sliders**: Range filters for task counts and scores
+- **Column Sorting**: Ascending/descending sort on all columns
+- **Filter Chips**: Visual indicators for active filters with easy removal
+- **Clear All**: One-click to remove all filters
 
-## Quick Start
+### Visualizations
+- **Bar Charts**: Task distribution across domains
+- **Line Charts**: Quality trends over time
+- **Scatter Plots**: Team performance distribution
+- **Area Charts**: Weekly task completion velocity
+- **Summary Cards**: Key metrics with color-coded indicators
 
-### Prerequisites
-- Python 3.10+
-- Node.js 18+
-- Google Cloud Platform account with BigQuery access
-- Service account credentials JSON file
+### Data Management
+- **Automatic Sync**: Hourly data synchronization from BigQuery
+- **Manual Sync**: On-demand sync via API endpoint
+- **S3 Integration**: Delivery file tracking from S3 buckets
+- **PostgreSQL Storage**: Fast local data access with materialized views
 
-### Installation
-
-1. **Clone or navigate to the project:**
-```bash
-cd Dashboard_2
-```
-
-2. **Set up Backend:**
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-
-# Configure .env with your GCP credentials
-cp .env.example .env
-# Edit .env with your settings
-
-# Start backend
-./start.sh
-```
-
-3. **Set up Frontend (in a new terminal):**
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-4. **Access the Dashboard:**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Documentation: http://localhost:8000/docs
-
-## Project Structure
-
-```
-
-├── backend/                      # FastAPI backend
-│   ├── app/
-│   │   ├── main.py              # FastAPI application
-│   │   ├── config.py            # Configuration management
-│   │   ├── routers/             # API route handlers
-│   │   │   └── stats.py         # Statistics endpoints
-│   │   ├── services/            # Business logic
-│   │   │   └── bigquery_service.py
-│   │   ├── schemas/             # Pydantic models
-│   │   │   └── response_schemas.py
-│   │   └── models/              # Data models
-│   ├── requirements.txt         # Python dependencies
-│   └── start.sh                 # Backend startup script
-│
-├── frontend/                     # React frontend
-│   ├── src/
-│   │   ├── components/          # Reusable components
-│   │   │   ├── Layout.tsx
-│   │   │   ├── FilterPanel.tsx
-│   │   │   ├── StatCard.tsx
-│   │   │   ├── LoadingSpinner.tsx
-│   │   │   └── ErrorDisplay.tsx
-│   │   ├── pages/               # Dashboard views
-│   │   │   ├── OverallStats.tsx
-│   │   │   ├── DomainStats.tsx
-│   │   │   ├── ReviewerStats.tsx
-│   │   │   ├── TrainerStats.tsx
-│   │   │   └── TaskLevel.tsx
-│   │   ├── services/            # API client
-│   │   │   └── api.ts
-│   │   ├── types/               # TypeScript types
-│   │   │   └── index.ts
-│   │   ├── App.tsx              # Root component
-│   │   └── main.tsx             # Entry point
-│   ├── package.json             # Node dependencies
-│   ├── vite.config.ts           # Vite configuration
-│   └── start.sh                 # Frontend startup script
-│
-└── README.md                     # This file
-```
-
-## Dashboard Views
-
-### 1. Overall Statistics
-**Route:** `/overall`
-
-Provides a bird's-eye view of all metrics:
-- Total conversation count
-- Average scores across dimensions
-- Quality dimension breakdowns
-- Interactive charts and tables
-
-### 2. Domain Analytics
-**Route:** `/domain`
-
-Analyze performance by domain:
-- Domain comparison charts
-- Conversation distribution
-- Domain-specific quality metrics
-- Expandable detail views
-
-### 3. Reviewer Statistics
-**Route:** `/reviewer`
-
-Track reviewer performance:
-- Top reviewers by review count
-- Performance correlation analysis
-- Individual reviewer profiles
-- Quality dimension tracking
-
-### 4. Trainer Analytics
-**Route:** `/trainer`
-
-Monitor training effectiveness:
-- Training session statistics
-- Performance profiles with radar charts
-- Trainer comparison
-- Quality metrics by trainer
-
-### 5. Task Level Information
-**Route:** `/task-level`
-
-Drill down to individual tasks:
-- Advanced searchable data grid
-- Task-specific quality dimensions
-- Annotator information
-- Real-time filtering
-
-## API Endpoints
-
-All endpoints support the following query parameters:
-- `domain`: Filter by domain
-- `reviewer`: Filter by reviewer ID
-- `trainer`: Filter by trainer level ID
-- `quality_dimension`: Filter by quality dimension name
-- `min_score`: Minimum score (0-5)
-- `max_score`: Maximum score (0-5)
-- `min_task_count`: Minimum task count
-
-### Available Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/overall` | GET | Overall aggregated statistics |
-| `/api/by-domain` | GET | Domain-level aggregations |
-| `/api/by-reviewer` | GET | Reviewer-level aggregations |
-| `/api/by-trainer-level` | GET | Trainer-level aggregations |
-| `/api/task-level` | GET | Task-level detailed information |
-| `/health` | GET | Health check endpoint |
-
-## Technology Stack
+## 🛠 Tech Stack
 
 ### Backend
-- **FastAPI** - Modern Python web framework
-- **Pydantic** - Data validation
-- **Google Cloud BigQuery** - Data warehouse
-- **Uvicorn** - ASGI server
+- **FastAPI**: Modern Python web framework
+- **PostgreSQL**: Primary database for derived data
+- **BigQuery**: Source data warehouse
+- **SQLAlchemy**: ORM and database toolkit
+- **APScheduler**: Background job scheduling
+- **Boto3**: AWS S3 integration
+- **Pydantic**: Data validation
 
 ### Frontend
-- **React 18** - UI library
-- **TypeScript** - Type safety
-- **Material-UI (MUI)** - Component library
-- **Recharts** - Chart library
-- **React Router** - Routing
-- **Axios** - HTTP client
-- **Vite** - Build tool
+- **React 18**: UI library
+- **TypeScript**: Type-safe JavaScript
+- **Vite**: Build tool and dev server
+- **Material-UI (MUI)**: Component library
+- **Recharts**: Data visualization
+- **Axios**: HTTP client
+- **React Router**: Navigation
 
-## Configuration
+## 📦 Prerequisites
 
-### Backend (.env)
-```env
-GCP_PROJECT_ID=your-project-id
-BIGQUERY_DATASET=your-dataset
-GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
-API_PREFIX=/api
-DEBUG=True
-CORS_ORIGINS=http://localhost:3000
+### System Requirements
+- **Python**: 3.12 or higher
+- **Node.js**: 18.x or higher
+- **PostgreSQL**: 14.x or higher
+- **npm**: 9.x or higher
+
+### Access Requirements
+- **Google Cloud**: Service account with BigQuery access
+- **AWS**: Configured profile with S3 read permissions
+- **PostgreSQL**: Database server running locally or remotely
+
+## 🚀 Installation
+
+### 1. Clone the Repository
+```bash
+cd /path/to/Dashboard_2
 ```
 
-### Frontend
-The frontend automatically proxies API requests to `http://localhost:8000` during development.
+### 2. Backend Setup
 
-## Development
-
-### Backend Development
 ```bash
 cd backend
-source venv/bin/activate
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Create virtual environment
+python3 -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-### Frontend Development
+### 3. Frontend Setup
+
 ```bash
 cd frontend
-npm run dev
+
+# Install dependencies
+npm install
 ```
 
-### Linting
+### 4. PostgreSQL Setup
+
+```bash
+# Create database
+createdb RubricDeepResearch
+
+# Or using psql
+psql -U postgres
+CREATE DATABASE "RubricDeepResearch";
+\q
+```
+
+## ⚙️ Configuration
+
+### Backend Configuration
+
+Create or edit `backend/.env`:
+
+```env
+# Application Settings
+APP_NAME=Amazon Delivery Dashboard API
+APP_VERSION=1.0.0
+DEBUG=False
+
+# BigQuery Settings
+GCP_PROJECT_ID=turing-gpt
+BIGQUERY_DATASET=prod_labeling_tool_z
+CONVERSATION_TABLE=conversation
+REVIEW_TABLE=review
+PROJECT_ID_FILTER=254
+
+# Google Cloud Credentials
+# Uncomment and set path to your service account JSON file
+#GOOGLE_APPLICATION_CREDENTIALS=./path-to-your-service-account.json
+
+# API Settings
+API_PREFIX=/api
+
+# CORS Settings
+CORS_ORIGINS=["http://localhost:3000","http://localhost:3001","http://localhost:5173"]
+
+# Pagination
+DEFAULT_PAGE_SIZE=100
+MAX_PAGE_SIZE=1000
+
+# PostgreSQL Settings
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=RubricDeepResearch
+
+# Data Sync Settings
+SYNC_INTERVAL_HOURS=1
+INITIAL_SYNC_ON_STARTUP=True
+
+# S3 Settings
+S3_BUCKET="s3_bucket_name"
+S3_PREFIX="s3_prefix
+S3_AWS_PROFILE="s3_profile"
+
+# Project Settings
+PROJECT_START_DATE=2025-09-26
+```
+
+### AWS Configuration
+
+Ensure your AWS credentials are configured:
+
+```bash
+# Check if profile exists
+aws configure list --profile amazon
+
+# If not, configure it
+aws configure --profile amazon
+```
+
+### Google Cloud Configuration
+
+Set up service account credentials:
+
+1. Download service account JSON from Google Cloud Console
+2. Place it in the backend directory
+3. Update `GOOGLE_APPLICATION_CREDENTIALS` in `.env`
+
+## 🏃 Running the Application
+
+### Option 1: Using Start Scripts (Recommended)
+
 ```bash
 # Backend
 cd backend
-black app/
-flake8 app/
+./start.sh
 
-# Frontend
+# Frontend (in a new terminal)
 cd frontend
-npm run lint
+npm run dev
 ```
 
-## Production Deployment
+### Option 2: Manual Start
 
-### Backend
+**Backend:**
 ```bash
 cd backend
-pip install gunicorn
-gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+source venv/bin/activate
+uvicorn app.main:app --reload --port 8000
 ```
 
-### Frontend
+**Frontend:**
 ```bash
 cd frontend
-npm run build
-# Serve the dist/ directory with your preferred static server
+npm run dev
 ```
 
-## Documentation
+### Accessing the Application
 
-- **[COMPLETE_DASHBOARD_GUIDE.md](./COMPLETE_DASHBOARD_GUIDE.md)** - Comprehensive guide covering both backend and frontend
-- **[FRONTEND_SETUP_GUIDE.md](./FRONTEND_SETUP_GUIDE.md)** - Detailed frontend setup and development guide
-- **[backend/COMPLETE_DOCUMENTATION.md](./backend/COMPLETE_DOCUMENTATION.md)** - Backend API documentation
-- **[backend/COMPLETE_SETUP_GUIDE.md](./backend/COMPLETE_SETUP_GUIDE.md)** - Backend setup guide
+- **Frontend**: http://localhost:3000 (or 3001, 3002 if ports are in use)
+- **Backend API**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
+- **API Redoc**: http://localhost:8000/redoc
 
-## Troubleshooting
+## 📁 Project Structure
+
+```
+Dashboard_2/
+├── backend/
+│   ├── app/
+│   │   ├── config.py              # Configuration management
+│   │   ├── main.py                # FastAPI application
+│   │   ├── models/
+│   │   │   └── db_models.py       # SQLAlchemy models
+│   │   ├── routers/
+│   │   │   ├── stats.py           # Statistics endpoints
+│   │   │   └── s3_ingestion.py    # S3 sync endpoint
+│   │   ├── schemas/
+│   │   │   └── response_schemas.py # Pydantic schemas
+│   │   └── services/
+│   │       ├── bigquery_service.py      # BigQuery queries
+│   │       ├── data_sync_service.py     # Data synchronization
+│   │       ├── db_service.py            # Database connection
+│   │       ├── postgres_query_service.py # PostgreSQL queries
+│   │       └── s3_ingestion_service.py  # S3 integration
+│   ├── manual_sync.py             # Manual sync script
+│   ├── requirements.txt           # Python dependencies
+│   ├── start.sh                   # Backend start script
+│   └── .env                       # Environment variables
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── clientdelivery/
+│   │   │   │   └── DeliveryTracker.tsx
+│   │   │   ├── predelivery/
+│   │   │   │   ├── DomainWise.tsx
+│   │   │   │   ├── TrainerWise.tsx
+│   │   │   │   ├── ReviewerWise.tsx
+│   │   │   │   └── TaskWise.tsx
+│   │   │   ├── Layout.tsx         # Main layout with sidebar
+│   │   │   ├── LoadingSpinner.tsx
+│   │   │   └── ErrorDisplay.tsx
+│   │   ├── pages/
+│   │   │   ├── Dashboard.tsx      # Main dashboard
+│   │   │   ├── PreDelivery.tsx    # Pre-delivery analysis
+│   │   │   └── ClientDelivery.tsx # Client delivery analysis
+│   │   ├── services/
+│   │   │   └── api.ts             # API client
+│   │   ├── types/
+│   │   │   └── index.ts           # TypeScript types
+│   │   ├── App.tsx                # Root component
+│   │   ├── main.tsx               # Entry point
+│   │   └── theme.ts               # MUI theme
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── vite.config.ts
+│
+└── README.md
+```
+
+## 📡 API Documentation
+
+### Statistics Endpoints
+
+#### Overall Statistics
+```
+GET /api/overall
+```
+Returns overall aggregated statistics including task counts, quality metrics, and team size.
+
+#### Domain Statistics
+```
+GET /api/by-domain
+```
+Returns statistics grouped by domain with quality dimension breakdowns.
+
+#### Trainer Statistics
+```
+GET /api/by-trainer-level
+```
+Returns statistics grouped by trainer with performance metrics.
+
+#### Reviewer Statistics
+```
+GET /api/by-reviewer
+```
+Returns statistics grouped by reviewer with quality assessments.
+
+#### Task Level Information
+```
+GET /api/task-level
+```
+Returns detailed task-level information with all quality dimensions.
+
+### Client Delivery Endpoints
+
+All statistics endpoints have client delivery equivalents:
+- `/api/client-delivery/overall`
+- `/api/client-delivery/by-domain`
+- `/api/client-delivery/by-trainer`
+- `/api/client-delivery/by-reviewer`
+- `/api/client-delivery/tracker`
+
+### Data Synchronization
+
+#### Manual Sync
+```
+POST /api/sync
+```
+Triggers manual data synchronization from BigQuery and/or S3.
+
+Body (optional):
+```json
+{
+  "sync_bigquery": true,
+  "sync_s3": true
+}
+```
+
+## 🔄 Data Synchronization
+
+### Automatic Sync
+
+- **Frequency**: Every 1 hour (configurable via `SYNC_INTERVAL_HOURS`)
+- **Startup**: Initial sync runs on application startup
+- **Tables Synced**:
+  - `contributor` (lookup table)
+  - `task_reviewed_info` (review status)
+  - `task` (task details)
+  - `review_detail` (quality dimensions)
+
+### Manual Sync
+
+#### Via API
+```bash
+curl -X POST http://localhost:8000/api/sync
+```
+
+#### Via Script
+```bash
+cd backend
+python manual_sync.py
+```
+
+### S3 Sync
+
+- **Trigger**: Manual only (POST /api/sync or via UI)
+- **Purpose**: Sync delivered files from S3
+- **Table**: `work_item`
+
+## 🐛 Troubleshooting
 
 ### Backend Issues
 
-**Port already in use:**
-```bash
-lsof -ti:8000 | xargs kill -9
+**PostgreSQL Connection Error**
+```
+Solution: Check PostgreSQL is running and credentials in .env are correct
 ```
 
-**BigQuery authentication error:**
-```bash
-export GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
+**BigQuery Authentication Error**
+```
+Solution: Verify GOOGLE_APPLICATION_CREDENTIALS path and service account permissions
+```
+
+**Port Already in Use**
+```
+Solution: Kill the process using port 8000
+lsof -ti:8000 | xargs kill -9
 ```
 
 ### Frontend Issues
 
-**Module not found:**
-```bash
+**Port Already in Use**
+```
+Solution: Vite will automatically try the next available port (3001, 3002, etc.)
+```
+
+**API Connection Error**
+```
+Solution: Ensure backend is running on http://localhost:8000
+```
+
+**Module Not Found**
+```
+Solution: Delete node_modules and reinstall
 rm -rf node_modules package-lock.json
 npm install
 ```
 
-**API connection failed:**
-- Verify backend is running: `curl http://localhost:8000/health`
-- Check CORS configuration in backend `.env`
+### Data Issues
 
-## Browser Support
+**No Data Showing**
+```
+Solution: Trigger manual sync
+curl -X POST http://localhost:8000/api/sync
+```
 
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
+**Outdated Data**
+```
+Solution: Check sync logs and trigger manual sync if needed
+```
 
-## Performance
+**S3 Access Denied**
+```
+Solution: Verify AWS profile has S3 read permissions
+aws s3 ls s3://agi-ds-turing/ --profile amazon
+```
 
-- Backend: Handles 1000+ requests/second
-- Frontend: 60fps animations and interactions
-- Charts: Optimized for datasets up to 10,000 points
-- Data Grid: Virtual scrolling for large datasets
+## 📝 Notes
 
-## Security
+- **First Run**: Initial data sync may take several minutes depending on data volume
+- **Performance**: PostgreSQL materialized views provide fast query performance
+- **Caching**: Frontend implements 5-minute cache for API responses
+- **Filters**: All filters work together with AND logic
+- **Date Filters**: Based on `updated_at` field from review data
+- **Week Numbers**: Calculated from project start date (configurable)
 
-- CORS protection
-- Input validation with Pydantic
-- SQL injection prevention (parameterized queries)
-- Credential management via environment variables
-- HTTPS ready for production
+## 🔒 Security
 
-## License
+- Never commit `.env` files to version control
+- Keep service account JSON files secure
+- Use environment variables for all sensitive data
+- Restrict database access to necessary IPs only
+- Use HTTPS in production environments
 
-Proprietary - Amazon Delivery Analytics
+## 📄 License
 
-## Support
+Internal use only - Turing/Amazon Delivery Project
 
-For issues or questions:
-1. Check the documentation files
-2. Review the API documentation at `/docs`
-3. Inspect browser console and network tab
-4. Check backend logs
+## 👥 Support
 
-## Version
-
-**Current Version:** 1.0.0
+For issues or questions, contact the development team.
 
 ---
 
-**Built with ❤️ for Amazon Delivery Analytics**
-
+**Last Updated**: November 2025
+**Version**: 1.0.0

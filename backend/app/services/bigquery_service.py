@@ -88,12 +88,14 @@ class BigQueryService:
         filter_clause = self._build_filter_clauses(filters)
         
         return f"""
-                WITH task_deliver_info AS ( 
+                WITH task_reviewed_info AS ( 
                     SELECT DISTINCT 
                         r.conversation_id AS r_id,
                         bt.task_id AS delivered_id,
                         c.colab_link AS RLHF_Link,
+                        CASE WHEN r.conversation_id = bt.task_id THEN "True" ELSE "False" END AS is_delivered,
                         r.status,
+                        r.score AS task_score,
                         DATE(r.updated_at) AS updated_at,
                         cb.name,
                         (
@@ -129,17 +131,18 @@ class BigQueryService:
                  task AS (
                     SELECT 
                         *,
+                        tdi.is_delivered,
                         CASE 
                             WHEN REGEXP_CONTAINS(statement, r'\\*\\*domain\\*\\*') THEN
                                 TRIM(REGEXP_EXTRACT(statement, r'\\*\\*domain\\*\\*\\s*-\\s*([^\\n]+)'))
                             WHEN REGEXP_CONTAINS(statement, r'\\*\\*suggested-domain\\*\\*') THEN
                                 TRIM(REGEXP_EXTRACT(statement, r'\\*\\*suggested-domain\\*\\*\\s*-\\s*([^\\n]+)'))
                             ELSE NULL
-                        END AS domain
-                    FROM `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.conversation`
+                        END AS domain,
+                    FROM `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.conversation` as task_
+                    RIGHT JOIN task_reviewed_info AS tdi
+                        ON tdi.r_id = task_.id
                     WHERE project_id = {self.settings.project_id_filter} 
-                        AND id IN (SELECT r_id FROM task_deliver_info WHERE delivered_id IS NULL)
-                        AND status = 'completed'
                 ),
                 review AS (
                     SELECT 
@@ -158,12 +161,17 @@ class BigQueryService:
                         b.review_id, 
                         a.reviewer_id, 
                         a.conversation_id, 
+                        tdi.is_delivered,
+                        a.score as task_score,
+                        a.updated_at,
                         rqd.name, 
                         b.score_text, 
                         b.score
                     FROM (SELECT * FROM review WHERE row_num = 1) a
                     RIGHT JOIN task AS task_ 
                         ON task_.id = a.conversation_id
+                    LEFT JOIN task_reviewed_info AS tdi
+                        ON tdi.r_id = task_.id
                     LEFT JOIN `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.review_quality_dimension_value` AS b 
                         ON b.review_id = a.id
                     LEFT JOIN `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.quality_dimension` AS rqd

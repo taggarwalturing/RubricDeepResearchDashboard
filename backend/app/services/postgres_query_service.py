@@ -1,0 +1,951 @@
+"""
+PostgreSQL query service for dashboard statistics
+Queries the materialized review_detail table
+"""
+import logging
+from typing import List, Dict, Any, Optional
+from collections import defaultdict
+from sqlalchemy import func
+
+from app.config import get_settings
+from app.services.db_service import get_db_service
+from app.models.db_models import ReviewDetail, Contributor, Task, WorkItem
+
+logger = logging.getLogger(__name__)
+
+
+class PostgresQueryService:
+    """Service class for PostgreSQL query operations"""
+    
+    def __init__(self):
+        """Initialize PostgreSQL query service"""
+        self.settings = get_settings()
+        self.db_service = get_db_service()
+    
+    def _get_contributor_map(self) -> Dict[int, Dict[str, str]]:
+        """Get contributor ID to name, email, and status mapping"""
+        try:
+            with self.db_service.get_session() as session:
+                contributors = session.query(
+                    Contributor.id, 
+                    Contributor.name, 
+                    Contributor.turing_email,
+                    Contributor.status
+                ).all()
+                return {
+                    c.id: {
+                        'name': c.name,
+                        'email': c.turing_email,
+                        'status': c.status
+                    } 
+                    for c in contributors
+                }
+        except Exception as e:
+            logger.error(f"Error getting contributor map: {e}")
+            return {}
+    
+    def _format_name_with_status(self, name: str, status: str) -> str:
+        """
+        Format contributor name with status indicator if not active
+        Args:
+            name: Contributor name
+            status: Contributor status
+        Returns:
+            Formatted name (e.g., "John Doe" or "John Doe (inactive)")
+        """
+        if not name:
+            return 'Unknown'
+        if not status or status.lower() == 'active':
+            return name
+        return f"{name} ({status.lower()})"
+    
+    def _process_aggregation_results(self, results: List[Any], group_key: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Process query results into structured aggregation format
+        Matches the logic from bigquery_service._process_aggregation_results
+        
+        Args:
+            results: Raw results from PostgreSQL
+            group_key: The key to group by (domain, reviewer_id, human_role_id) or None for overall
+            
+        Returns:
+            List of aggregated data
+        """
+        # Group results by the group_key
+        grouped_data = defaultdict(lambda: defaultdict(lambda: {
+            'name': None,
+            'conversation_ids': set(),
+            'scores': [],
+            'task_scores': {}  # conversation_id -> task_score mapping
+        }))
+        
+        for row in results:
+            # Determine group value
+            if group_key:
+                group_value = getattr(row, group_key, None)
+            else:
+                group_value = 'overall'
+            
+            name = row.name
+            if name:  # Only process rows with a quality dimension name
+                conversation_id = row.conversation_id
+                score = row.score
+                task_score = getattr(row, 'task_score', None)
+                
+                grouped_data[group_value][name]['name'] = name
+                
+                if conversation_id is not None:
+                    grouped_data[group_value][name]['conversation_ids'].add(conversation_id)
+                    # Store task_score per conversation_id
+                    if task_score is not None:
+                        grouped_data[group_value][name]['task_scores'][conversation_id] = task_score
+                
+                if score is not None:
+                    grouped_data[group_value][name]['scores'].append(score)
+        
+        # Convert to final format
+        result = []
+        for group_value, dimensions in grouped_data.items():
+            quality_dimensions = []
+            all_conversation_ids = set()
+            all_task_scores = []
+            
+            for name, data in dimensions.items():
+                avg_score = None
+                if data['scores']:
+                    avg_score = sum(data['scores']) / len(data['scores'])
+                
+                all_conversation_ids.update(data['conversation_ids'])
+                # Collect all task scores for this group
+                all_task_scores.extend(data['task_scores'].values())
+                
+                quality_dimensions.append({
+                    'name': data['name'],
+                    'average_score': round(avg_score, 2) if avg_score is not None else None,
+                    'task_count': len(data['conversation_ids'])
+                })
+            
+            # Sort by name for consistency
+            quality_dimensions.sort(key=lambda x: x['name'])
+            
+            # Calculate average task score for this group
+            average_task_score = None
+            if all_task_scores:
+                average_task_score = round(sum(all_task_scores) / len(all_task_scores), 2)
+            
+            item = {
+                'task_count': len(all_conversation_ids),
+                'average_task_score': average_task_score,
+                'quality_dimensions': quality_dimensions
+            }
+            
+            if group_key:
+                item[group_key] = group_value
+            
+            result.append(item)
+        
+        return result
+    
+    def _process_client_delivery_aggregation(self, results, group_key=None):
+        """
+        Process aggregation results for client delivery (counts based on work_item.task_id)
+        
+        Args:
+            results: Query results with domain/name/score/task_score/task_id fields
+            group_key: Key to group by (e.g., 'domain', 'human_role_id', 'reviewer_id')
+            
+        Returns:
+            List of aggregated data
+        """
+        # Group results by the group_key
+        grouped_data = defaultdict(lambda: defaultdict(lambda: {
+            'name': None,
+            'task_ids': set(),  # Changed from conversation_ids to task_ids
+            'scores': [],
+            'task_scores': {}  # task_id -> task_score mapping
+        }))
+        
+        for row in results:
+            # Determine group value
+            if group_key:
+                group_value = getattr(row, group_key, None)
+            else:
+                group_value = 'overall'
+            
+            name = row.name
+            if name:  # Only process rows with a quality dimension name
+                task_id = row.task_id  # Use work_item.task_id
+                score = row.score
+                task_score = getattr(row, 'task_score', None)
+                
+                grouped_data[group_value][name]['name'] = name
+                
+                if task_id is not None:
+                    grouped_data[group_value][name]['task_ids'].add(task_id)
+                    # Store task_score per task_id
+                    if task_score is not None:
+                        grouped_data[group_value][name]['task_scores'][task_id] = task_score
+                
+                if score is not None:
+                    grouped_data[group_value][name]['scores'].append(score)
+        
+        # Convert to final format
+        result = []
+        for group_value, dimensions in grouped_data.items():
+            quality_dimensions = []
+            all_task_ids = set()
+            all_task_scores = []
+            
+            for name, data in dimensions.items():
+                avg_score = None
+                if data['scores']:
+                    avg_score = sum(data['scores']) / len(data['scores'])
+                
+                all_task_ids.update(data['task_ids'])
+                # Collect all task scores for this group
+                all_task_scores.extend(data['task_scores'].values())
+                
+                quality_dimensions.append({
+                    'name': data['name'],
+                    'average_score': round(avg_score, 2) if avg_score is not None else None,
+                    'task_count': len(data['task_ids'])  # Count distinct task_ids
+                })
+            
+            # Sort by name for consistency
+            quality_dimensions.sort(key=lambda x: x['name'])
+            
+            # Calculate average task score for this group
+            average_task_score = None
+            if all_task_scores:
+                average_task_score = round(sum(all_task_scores) / len(all_task_scores), 2)
+            
+            item = {
+                'task_count': len(all_task_ids),  # Count distinct task_ids
+                'average_task_score': average_task_score,
+                'quality_dimensions': quality_dimensions
+            }
+            
+            if group_key:
+                item[group_key] = group_value
+            
+            result.append(item)
+        
+        return result
+    
+    def get_overall_aggregation(self, filters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Get overall aggregation statistics"""
+        try:
+            with self.db_service.get_session() as session:
+                # Get all review_detail records where is_delivered = 'False' (Pre-Delivery only)
+                query = session.query(ReviewDetail).filter(ReviewDetail.is_delivered == 'False')
+                
+                # Apply filters if provided
+                if filters:
+                    if filters.get('domain'):
+                        query = query.filter(ReviewDetail.domain == filters['domain'])
+                    if filters.get('reviewer'):
+                        query = query.filter(ReviewDetail.reviewer_id == int(filters['reviewer']))
+                    if filters.get('trainer'):
+                        query = query.filter(ReviewDetail.human_role_id == int(filters['trainer']))
+                    if filters.get('quality_dimension'):
+                        query = query.filter(ReviewDetail.name == filters['quality_dimension'])
+                    if filters.get('min_score') is not None:
+                        query = query.filter(ReviewDetail.score >= filters['min_score'])
+                    if filters.get('max_score') is not None:
+                        query = query.filter(ReviewDetail.score <= filters['max_score'])
+                
+                results = query.all()
+                
+                # Process aggregation
+                aggregated = self._process_aggregation_results(results, group_key=None)
+                
+                if not aggregated:
+                    return {
+                        'task_count': 0,
+                        'reviewer_count': 0,
+                        'trainer_count': 0,
+                        'domain_count': 0,
+                        'delivered_tasks': 0,
+                        'delivered_files': 0,
+                        'quality_dimensions': []
+                    }
+                
+                # Calculate unique counts
+                unique_reviewers = set()
+                unique_trainers = set()
+                unique_domains = set()
+                
+                for row in results:
+                    if row.reviewer_id:
+                        unique_reviewers.add(row.reviewer_id)
+                    if row.human_role_id:
+                        unique_trainers.add(row.human_role_id)
+                    if row.domain:
+                        unique_domains.add(row.domain)
+                
+                # Get work_item stats (delivered tasks and files)
+                from app.models.db_models import WorkItem
+                from sqlalchemy import func, distinct
+                
+                delivered_tasks = session.query(func.count(WorkItem.work_item_id)).scalar() or 0
+                delivered_files = session.query(func.count(distinct(WorkItem.json_filename))).scalar() or 0
+                
+                overall_data = aggregated[0]
+                overall_data['reviewer_count'] = len(unique_reviewers)
+                overall_data['trainer_count'] = len(unique_trainers)
+                overall_data['domain_count'] = len(unique_domains)
+                overall_data['delivered_tasks'] = delivered_tasks
+                overall_data['delivered_files'] = delivered_files
+                
+                return overall_data
+        except Exception as e:
+            logger.error(f"Error getting overall aggregation: {e}")
+            raise
+    
+    def get_domain_aggregation(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Get domain-wise aggregation statistics"""
+        try:
+            with self.db_service.get_session() as session:
+                # Get all review_detail records where is_delivered = 'False' (Pre-Delivery only)
+                query = session.query(ReviewDetail).filter(ReviewDetail.is_delivered == 'False')
+                
+                # Apply filters if provided
+                if filters:
+                    if filters.get('domain'):
+                        query = query.filter(ReviewDetail.domain == filters['domain'])
+                    if filters.get('reviewer'):
+                        query = query.filter(ReviewDetail.reviewer_id == int(filters['reviewer']))
+                    if filters.get('trainer'):
+                        query = query.filter(ReviewDetail.human_role_id == int(filters['trainer']))
+                    if filters.get('quality_dimension'):
+                        query = query.filter(ReviewDetail.name == filters['quality_dimension'])
+                    if filters.get('min_score') is not None:
+                        query = query.filter(ReviewDetail.score >= filters['min_score'])
+                    if filters.get('max_score') is not None:
+                        query = query.filter(ReviewDetail.score <= filters['max_score'])
+                
+                results = query.all()
+                
+                # Process aggregation by domain
+                aggregated = self._process_aggregation_results(results, group_key='domain')
+                
+                # Format for API response
+                for item in aggregated:
+                    item['domain'] = item.pop('domain', 'Unknown')
+                
+                # Sort by domain name
+                aggregated.sort(key=lambda x: x.get('domain', ''))
+                
+                return aggregated
+        except Exception as e:
+            logger.error(f"Error getting domain aggregation: {e}")
+            raise
+    
+    def get_trainer_aggregation(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Get trainer-wise aggregation statistics"""
+        try:
+            # Get contributor map for names
+            contributor_map = self._get_contributor_map()
+            
+            with self.db_service.get_session() as session:
+                # Get all review_detail records where is_delivered = 'False' (Pre-Delivery only)
+                query = session.query(ReviewDetail).filter(ReviewDetail.is_delivered == 'False')
+                
+                # Apply filters if provided
+                if filters:
+                    if filters.get('domain'):
+                        query = query.filter(ReviewDetail.domain == filters['domain'])
+                    if filters.get('reviewer'):
+                        query = query.filter(ReviewDetail.reviewer_id == int(filters['reviewer']))
+                    if filters.get('trainer'):
+                        query = query.filter(ReviewDetail.human_role_id == int(filters['trainer']))
+                    if filters.get('quality_dimension'):
+                        query = query.filter(ReviewDetail.name == filters['quality_dimension'])
+                    if filters.get('min_score') is not None:
+                        query = query.filter(ReviewDetail.score >= filters['min_score'])
+                    if filters.get('max_score') is not None:
+                        query = query.filter(ReviewDetail.score <= filters['max_score'])
+                
+                results = query.all()
+                
+                # Process aggregation by trainer
+                aggregated = self._process_aggregation_results(results, group_key='human_role_id')
+                
+                # Format for API response
+                for item in aggregated:
+                    trainer_id = item.pop('human_role_id', None)
+                    item['trainer_id'] = trainer_id
+                    contributor_info = contributor_map.get(trainer_id, {})
+                    name = contributor_info.get('name', 'Unknown') if trainer_id else 'Unknown'
+                    status = contributor_info.get('status', None)
+                    item['trainer_name'] = self._format_name_with_status(name, status) if trainer_id else 'Unknown'
+                    item['trainer_email'] = contributor_info.get('email', None) if trainer_id else None
+                
+                # Sort by trainer name
+                aggregated.sort(key=lambda x: x.get('trainer_name', ''))
+                
+                return aggregated
+        except Exception as e:
+            logger.error(f"Error getting trainer aggregation: {e}")
+            raise
+    
+    def get_reviewer_aggregation(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Get reviewer-wise aggregation statistics"""
+        try:
+            # Get contributor map for names
+            contributor_map = self._get_contributor_map()
+            
+            with self.db_service.get_session() as session:
+                # Get all review_detail records where is_delivered = 'False' (Pre-Delivery only)
+                query = session.query(ReviewDetail).filter(ReviewDetail.is_delivered == 'False')
+                
+                # Apply filters if provided
+                if filters:
+                    if filters.get('domain'):
+                        query = query.filter(ReviewDetail.domain == filters['domain'])
+                    if filters.get('reviewer'):
+                        query = query.filter(ReviewDetail.reviewer_id == int(filters['reviewer']))
+                    if filters.get('trainer'):
+                        query = query.filter(ReviewDetail.human_role_id == int(filters['trainer']))
+                    if filters.get('quality_dimension'):
+                        query = query.filter(ReviewDetail.name == filters['quality_dimension'])
+                    if filters.get('min_score') is not None:
+                        query = query.filter(ReviewDetail.score >= filters['min_score'])
+                    if filters.get('max_score') is not None:
+                        query = query.filter(ReviewDetail.score <= filters['max_score'])
+                
+                results = query.all()
+                
+                # Process aggregation by reviewer
+                aggregated = self._process_aggregation_results(results, group_key='reviewer_id')
+                
+                # Format for API response
+                for item in aggregated:
+                    reviewer_id = item.pop('reviewer_id', None)
+                    item['reviewer_id'] = reviewer_id
+                    contributor_info = contributor_map.get(reviewer_id, {})
+                    name = contributor_info.get('name', 'Unknown') if reviewer_id else 'Unknown'
+                    status = contributor_info.get('status', None)
+                    item['reviewer_name'] = self._format_name_with_status(name, status) if reviewer_id else 'Unknown'
+                    item['reviewer_email'] = contributor_info.get('email', None) if reviewer_id else None
+                
+                # Sort by reviewer name
+                aggregated.sort(key=lambda x: x.get('reviewer_name', ''))
+                
+                return aggregated
+        except Exception as e:
+            logger.error(f"Error getting reviewer aggregation: {e}")
+            raise
+    
+    def get_task_level_data(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Get task-level data with all quality dimensions"""
+        try:
+            # Get contributor map for names
+            contributor_map = self._get_contributor_map()
+            
+            with self.db_service.get_session() as session:
+                # Get all review_detail records where is_delivered = 'False' (Pre-Delivery only)
+                # with colab_link and week_number from task table
+                query = session.query(ReviewDetail, Task.colab_link, Task.week_number).outerjoin(
+                    Task, ReviewDetail.conversation_id == Task.id
+                ).filter(ReviewDetail.is_delivered == 'False')
+                
+                # Apply filters if provided
+                if filters:
+                    if filters.get('domain'):
+                        query = query.filter(ReviewDetail.domain == filters['domain'])
+                    if filters.get('reviewer'):
+                        query = query.filter(ReviewDetail.reviewer_id == int(filters['reviewer']))
+                    if filters.get('trainer'):
+                        query = query.filter(ReviewDetail.human_role_id == int(filters['trainer']))
+                    if filters.get('quality_dimension'):
+                        query = query.filter(ReviewDetail.name == filters['quality_dimension'])
+                    if filters.get('min_score') is not None:
+                        query = query.filter(ReviewDetail.score >= filters['min_score'])
+                    if filters.get('max_score') is not None:
+                        query = query.filter(ReviewDetail.score <= filters['max_score'])
+                    # Date range filtering
+                    if filters.get('date_from'):
+                        from datetime import datetime
+                        date_from = filters['date_from']
+                        if isinstance(date_from, str):
+                            date_from = datetime.fromisoformat(date_from.replace('Z', '+00:00'))
+                        query = query.filter(ReviewDetail.updated_at >= date_from)
+                    if filters.get('date_to'):
+                        from datetime import datetime, timedelta
+                        date_to = filters['date_to']
+                        if isinstance(date_to, str):
+                            date_to = datetime.fromisoformat(date_to.replace('Z', '+00:00'))
+                        # Include the entire end date
+                        date_to = date_to + timedelta(days=1)
+                        query = query.filter(ReviewDetail.updated_at < date_to)
+                
+                results = query.all()
+                
+                # Group by task (conversation_id)
+                task_data = defaultdict(lambda: {
+                    'task_id': None,
+                    'task_score': None,
+                    'annotator_id': None,
+                    'annotator_name': None,
+                    'annotator_email': None,
+                    'reviewer_id': None,
+                    'reviewer_name': None,
+                    'reviewer_email': None,
+                    'colab_link': None,
+                    'updated_at': None,
+                    'week_number': None,
+                    'quality_dimensions': {}
+                })
+                
+                for row, colab_link, week_number in results:
+                    task_id = row.conversation_id
+                    if not task_id:
+                        continue
+                    
+                    if task_data[task_id]['task_id'] is None:
+                        task_data[task_id]['task_id'] = task_id
+                        task_data[task_id]['task_score'] = round(float(row.task_score), 2) if row.task_score is not None else None
+                        task_data[task_id]['annotator_id'] = row.human_role_id
+                        
+                        # Get annotator info from contributor map
+                        annotator_info = contributor_map.get(row.human_role_id, {})
+                        annotator_name = annotator_info.get('name', 'Unknown') if row.human_role_id else 'Unknown'
+                        annotator_status = annotator_info.get('status', None)
+                        task_data[task_id]['annotator_name'] = self._format_name_with_status(annotator_name, annotator_status) if row.human_role_id else 'Unknown'
+                        task_data[task_id]['annotator_email'] = annotator_info.get('email', None) if row.human_role_id else None
+                        
+                        task_data[task_id]['reviewer_id'] = row.reviewer_id
+                        
+                        # Get reviewer info from contributor map
+                        reviewer_info = contributor_map.get(row.reviewer_id, {})
+                        reviewer_name = reviewer_info.get('name', 'Unknown') if row.reviewer_id else None
+                        reviewer_status = reviewer_info.get('status', None)
+                        task_data[task_id]['reviewer_name'] = self._format_name_with_status(reviewer_name, reviewer_status) if row.reviewer_id else None
+                        task_data[task_id]['reviewer_email'] = reviewer_info.get('email', None) if row.reviewer_id else None
+                        
+                        task_data[task_id]['colab_link'] = colab_link
+                        task_data[task_id]['updated_at'] = row.updated_at.isoformat() if row.updated_at else None
+                        task_data[task_id]['week_number'] = week_number
+                    
+                    # Add quality dimension scores
+                    if row.name and row.score is not None:
+                        task_data[task_id]['quality_dimensions'][row.name] = round(float(row.score), 2)
+                
+                # Convert to list
+                result = list(task_data.values())
+                
+                # Sort by task_id
+                result.sort(key=lambda x: x['task_id'])
+                
+                return result
+        except Exception as e:
+            logger.error(f"Error getting task level data: {e}")
+            raise
+    
+    def get_client_delivery_aggregation(self, filters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Get overall aggregation statistics for client delivery (delivered tasks only)
+        Uses LEFT JOIN from work_item to task, NO quality dimensions"""
+        try:
+            with self.db_service.get_session() as session:
+                # Query work_item LEFT JOIN task LEFT JOIN task_reviewed_info
+                # Also get reviewer_id from review_detail to count unique reviewers
+                from app.models.db_models import TaskReviewedInfo
+                
+                # Get distinct work_item task_ids with domain and trainer info
+                task_query = session.query(
+                    WorkItem.task_id,
+                    Task.domain,
+                    Task.current_user_id,
+                    TaskReviewedInfo.task_score
+                ).select_from(WorkItem).join(
+                    Task, WorkItem.colab_link == Task.colab_link
+                ).outerjoin(
+                    TaskReviewedInfo, Task.id == TaskReviewedInfo.r_id
+                ).filter(
+                    Task.is_delivered == 'True'
+                ).distinct(WorkItem.task_id)
+                
+                # Apply filters if provided
+                if filters:
+                    if filters.get('domain'):
+                        task_query = task_query.filter(Task.domain == filters['domain'])
+                
+                task_results = task_query.all()
+                
+                if not task_results:
+                    return {
+                        'task_count': 0,
+                        'reviewer_count': 0,
+                        'trainer_count': 0,
+                        'domain_count': 0,
+                        'quality_dimensions_count': 0
+                    }
+                
+                # Get unique reviewer count from review_detail
+                reviewer_query = session.query(
+                    func.count(func.distinct(ReviewDetail.reviewer_id))
+                ).select_from(WorkItem).join(
+                    Task, WorkItem.colab_link == Task.colab_link
+                ).join(
+                    ReviewDetail, Task.id == ReviewDetail.conversation_id
+                ).filter(
+                    Task.is_delivered == 'True'
+                )
+                
+                if filters and filters.get('domain'):
+                    reviewer_query = reviewer_query.filter(Task.domain == filters['domain'])
+                
+                reviewer_count = reviewer_query.scalar() or 0
+                
+                # Calculate statistics based on distinct work_item task_ids
+                unique_domains = set()
+                unique_trainers = set()
+                task_scores = []
+                
+                for row in task_results:
+                    if row.domain:
+                        unique_domains.add(row.domain)
+                    if row.current_user_id:
+                        unique_trainers.add(row.current_user_id)
+                    if row.task_score is not None:
+                        task_scores.append(float(row.task_score))
+                
+                avg_score = sum(task_scores) / len(task_scores) if task_scores else 0
+                
+                # Get quality dimensions count from review_detail
+                # Join with work_item to ensure we only count QDs for delivered work items
+                qd_query = session.query(
+                    ReviewDetail.name
+                ).select_from(ReviewDetail).join(
+                    Task, ReviewDetail.conversation_id == Task.id
+                ).join(
+                    WorkItem, Task.colab_link == WorkItem.colab_link
+                ).filter(
+                    ReviewDetail.is_delivered == 'True'
+                ).distinct()
+                
+                if filters and filters.get('domain'):
+                    qd_query = qd_query.filter(ReviewDetail.domain == filters['domain'])
+                
+                # Get distinct names and count them
+                distinct_qd_names = qd_query.all()
+                quality_dimensions_count = len(distinct_qd_names)
+                
+                return {
+                    'task_count': len(task_results),  # Count of distinct work_item.task_id
+                    'reviewer_count': reviewer_count,
+                    'trainer_count': len(unique_trainers),
+                    'domain_count': len(unique_domains),
+                    'quality_dimensions_count': quality_dimensions_count
+                }
+        except Exception as e:
+            logger.error(f"Error getting client delivery aggregation: {e}")
+            raise
+    
+    def get_client_delivery_domain_aggregation(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Get domain-wise aggregation for client delivery (delivered tasks only)
+        Task count based on distinct work_item.task_id"""
+        try:
+            with self.db_service.get_session() as session:
+                # Get review_detail joined with work_item to get task_id
+                query = session.query(
+                    ReviewDetail.domain,
+                    ReviewDetail.name,
+                    ReviewDetail.score,
+                    ReviewDetail.task_score,
+                    WorkItem.task_id
+                ).select_from(ReviewDetail).join(
+                    Task, ReviewDetail.conversation_id == Task.id
+                ).join(
+                    WorkItem, Task.colab_link == WorkItem.colab_link
+                ).filter(
+                    ReviewDetail.is_delivered == 'True'
+                )
+                
+                # Apply filters if provided
+                if filters:
+                    if filters.get('domain'):
+                        query = query.filter(ReviewDetail.domain == filters['domain'])
+                    if filters.get('reviewer'):
+                        query = query.filter(ReviewDetail.reviewer_id == int(filters['reviewer']))
+                    if filters.get('trainer'):
+                        query = query.filter(ReviewDetail.human_role_id == int(filters['trainer']))
+                    if filters.get('quality_dimension'):
+                        query = query.filter(ReviewDetail.name == filters['quality_dimension'])
+                    if filters.get('min_score') is not None:
+                        query = query.filter(ReviewDetail.score >= filters['min_score'])
+                    if filters.get('max_score') is not None:
+                        query = query.filter(ReviewDetail.score <= filters['max_score'])
+                
+                results = query.all()
+                
+                # Process aggregation by domain with work_item task_id
+                aggregated = self._process_client_delivery_aggregation(results, group_key='domain')
+                
+                # Add domain key to each item
+                for item in aggregated:
+                    domain = item.get('domain', 'Unknown')
+                    item['domain'] = domain if domain else 'Unknown'
+                
+                return aggregated
+        except Exception as e:
+            logger.error(f"Error getting client delivery domain aggregation: {e}")
+            raise
+    
+    def get_client_delivery_trainer_aggregation(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Get trainer-wise aggregation for client delivery (delivered tasks only)
+        Task count based on distinct work_item.task_id"""
+        try:
+            contributor_map = self._get_contributor_map()
+            
+            with self.db_service.get_session() as session:
+                # Get review_detail joined with work_item to get task_id
+                query = session.query(
+                    ReviewDetail.human_role_id,
+                    ReviewDetail.name,
+                    ReviewDetail.score,
+                    ReviewDetail.task_score,
+                    WorkItem.task_id
+                ).select_from(ReviewDetail).join(
+                    Task, ReviewDetail.conversation_id == Task.id
+                ).join(
+                    WorkItem, Task.colab_link == WorkItem.colab_link
+                ).filter(
+                    ReviewDetail.is_delivered == 'True'
+                )
+                
+                # Apply filters if provided
+                if filters:
+                    if filters.get('domain'):
+                        query = query.filter(ReviewDetail.domain == filters['domain'])
+                    if filters.get('reviewer'):
+                        query = query.filter(ReviewDetail.reviewer_id == int(filters['reviewer']))
+                    if filters.get('trainer'):
+                        query = query.filter(ReviewDetail.human_role_id == int(filters['trainer']))
+                    if filters.get('quality_dimension'):
+                        query = query.filter(ReviewDetail.name == filters['quality_dimension'])
+                    if filters.get('min_score') is not None:
+                        query = query.filter(ReviewDetail.score >= filters['min_score'])
+                    if filters.get('max_score') is not None:
+                        query = query.filter(ReviewDetail.score <= filters['max_score'])
+                
+                results = query.all()
+                
+                # Process aggregation by trainer with work_item task_id
+                aggregated = self._process_client_delivery_aggregation(results, group_key='human_role_id')
+                
+                # Format for API response
+                for item in aggregated:
+                    trainer_id = item.get('human_role_id')
+                    contributor_info = contributor_map.get(trainer_id, {})
+                    name = contributor_info.get('name', 'Unknown') if trainer_id else 'Unknown'
+                    status = contributor_info.get('status', None)
+                    email = contributor_info.get('email', None) if trainer_id else None
+                    
+                    item['trainer_id'] = trainer_id
+                    item['trainer_name'] = self._format_name_with_status(name, status) if trainer_id else 'Unknown'
+                    item['trainer_email'] = email
+                    del item['human_role_id']
+                
+                return aggregated
+        except Exception as e:
+            logger.error(f"Error getting client delivery trainer aggregation: {e}")
+            raise
+    
+    def get_client_delivery_reviewer_aggregation(self, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Get reviewer-wise aggregation for client delivery (delivered tasks only)
+        Task count based on distinct work_item.task_id"""
+        try:
+            contributor_map = self._get_contributor_map()
+            
+            with self.db_service.get_session() as session:
+                # Get review_detail joined with work_item to get task_id
+                query = session.query(
+                    ReviewDetail.reviewer_id,
+                    ReviewDetail.name,
+                    ReviewDetail.score,
+                    ReviewDetail.task_score,
+                    WorkItem.task_id
+                ).select_from(ReviewDetail).join(
+                    Task, ReviewDetail.conversation_id == Task.id
+                ).join(
+                    WorkItem, Task.colab_link == WorkItem.colab_link
+                ).filter(
+                    ReviewDetail.is_delivered == 'True'
+                )
+                
+                # Apply filters if provided
+                if filters:
+                    if filters.get('domain'):
+                        query = query.filter(ReviewDetail.domain == filters['domain'])
+                    if filters.get('reviewer'):
+                        query = query.filter(ReviewDetail.reviewer_id == int(filters['reviewer']))
+                    if filters.get('trainer'):
+                        query = query.filter(ReviewDetail.human_role_id == int(filters['trainer']))
+                    if filters.get('quality_dimension'):
+                        query = query.filter(ReviewDetail.name == filters['quality_dimension'])
+                    if filters.get('min_score') is not None:
+                        query = query.filter(ReviewDetail.score >= filters['min_score'])
+                    if filters.get('max_score') is not None:
+                        query = query.filter(ReviewDetail.score <= filters['max_score'])
+                
+                results = query.all()
+                
+                # Process aggregation by reviewer with work_item task_id
+                aggregated = self._process_client_delivery_aggregation(results, group_key='reviewer_id')
+                
+                # Format for API response
+                for item in aggregated:
+                    reviewer_id = item.get('reviewer_id')
+                    contributor_info = contributor_map.get(reviewer_id, {})
+                    name = contributor_info.get('name', 'Unknown') if reviewer_id else 'Unknown'
+                    status = contributor_info.get('status', None)
+                    email = contributor_info.get('email', None) if reviewer_id else None
+                    
+                    item['reviewer_name'] = self._format_name_with_status(name, status) if reviewer_id else 'Unknown'
+                    item['reviewer_email'] = email
+                
+                return aggregated
+        except Exception as e:
+            logger.error(f"Error getting client delivery reviewer aggregation: {e}")
+            raise
+    
+    def get_delivery_tracker(self) -> List[Dict[str, Any]]:
+        """
+        Get delivery tracker information grouped by delivery date
+        Returns list of deliveries with date, task count, and file names
+        """
+        try:
+            with self.db_service.get_session() as session:
+                # Query work_item table grouped by delivery_date
+                results = session.query(
+                    func.date(WorkItem.delivery_date).label('delivery_date'),
+                    func.count(WorkItem.task_id).label('total_tasks'),
+                    func.array_agg(func.distinct(WorkItem.json_filename)).label('file_names')
+                ).filter(
+                    WorkItem.delivery_date.isnot(None)
+                ).group_by(
+                    func.date(WorkItem.delivery_date)
+                ).order_by(
+                    func.date(WorkItem.delivery_date).desc()
+                ).all()
+                
+                # Format results
+                tracker_data = []
+                for row in results:
+                    # Filter out None values from file_names array
+                    file_names = [f for f in (row.file_names or []) if f is not None]
+                    
+                    tracker_data.append({
+                        'delivery_date': row.delivery_date.strftime('%Y-%m-%d') if row.delivery_date else None,
+                        'total_tasks': row.total_tasks or 0,
+                        'file_names': file_names,
+                        'file_count': len(file_names)
+                    })
+                
+                return tracker_data
+        except Exception as e:
+            logger.error(f"Error getting delivery tracker: {e}")
+            raise
+
+    def get_client_delivery_task_wise(self) -> List[Dict[str, Any]]:
+        """
+        Get task-wise client delivery information
+        Returns list grouped by task_id with all work_items for each task
+        """
+        try:
+            with self.db_service.get_session() as session:
+                from sqlalchemy import func
+                
+                # Get all work items with their task details
+                results = session.query(
+                    WorkItem.work_item_id,
+                    WorkItem.task_id.label('workitem_task_id'),  # Original task_id from work_item
+                    WorkItem.delivery_date,
+                    Task.id.label('labelling_task_id'),  # Task.id is the conversation/task ID
+                    WorkItem.json_filename,
+                    ReviewDetail.task_score,
+                    WorkItem.turing_status,
+                    WorkItem.client_status,
+                    WorkItem.task_level_feedback,
+                    WorkItem.error_categories
+                ).outerjoin(
+                    Task,
+                    WorkItem.colab_link == Task.colab_link
+                ).outerjoin(
+                    ReviewDetail,
+                    Task.id == ReviewDetail.conversation_id
+                ).filter(
+                    Task.is_delivered == 'True'
+                ).distinct().all()
+
+                # Group by labelling_task_id
+                task_groups = {}
+                for row in results:
+                    labelling_task_id = row.labelling_task_id
+                    if labelling_task_id not in task_groups:
+                        task_groups[labelling_task_id] = {
+                            'task_id': labelling_task_id,  # This is the labelling task ID
+                            'task_score': float(row.task_score) if row.task_score is not None else None,
+                            'work_items': []
+                        }
+                    
+                    # Add work item to this task's list
+                    task_groups[labelling_task_id]['work_items'].append({
+                        'work_item_id': row.work_item_id,
+                        'task_id': row.workitem_task_id,  # Original task_id from work_item table
+                        'delivery_date': row.delivery_date.strftime('%Y-%m-%d') if row.delivery_date else None,
+                        'json_filename': row.json_filename,
+                        'turing_status': row.turing_status,
+                        'client_status': row.client_status,
+                        'task_level_feedback': row.task_level_feedback,
+                        'error_categories': row.error_categories
+                    })
+                
+                # Calculate aggregated status for each task
+                task_data = []
+                for task_id, task_info in task_groups.items():
+                    work_items = task_info['work_items']
+                    
+                    # Determine overall turing_status (if any is Rework, show Rework)
+                    turing_statuses = [wi['turing_status'] for wi in work_items]
+                    overall_turing_status = 'Rework' if 'Rework' in turing_statuses else 'Delivered'
+                    
+                    # Get most recent delivery date and its client_status
+                    work_items_with_dates = [wi for wi in work_items if wi['delivery_date']]
+                    if work_items_with_dates:
+                        # Sort by delivery_date to get the latest
+                        latest_work_item = max(work_items_with_dates, key=lambda x: x['delivery_date'])
+                        latest_delivery_date = latest_work_item['delivery_date']
+                        overall_client_status = latest_work_item['client_status']
+                    else:
+                        latest_delivery_date = None
+                        overall_client_status = 'Pending'
+                    
+                    task_data.append({
+                        'task_id': task_id,
+                        'task_score': task_info['task_score'],
+                        'delivery_date': latest_delivery_date,
+                        'work_item_count': len(work_items),
+                        'turing_status': overall_turing_status,
+                        'client_status': overall_client_status,
+                        'work_items': work_items  # All work items for this task
+                    })
+
+                return task_data
+        except Exception as e:
+            logger.error(f"Error getting client delivery task-wise data: {e}")
+            raise
+
+
+# Global PostgreSQL query service instance
+_postgres_query_service = None
+
+
+def get_postgres_query_service() -> PostgresQueryService:
+    """Get or create the global PostgreSQL query service instance"""
+    global _postgres_query_service
+    if _postgres_query_service is None:
+        _postgres_query_service = PostgresQueryService()
+    return _postgres_query_service

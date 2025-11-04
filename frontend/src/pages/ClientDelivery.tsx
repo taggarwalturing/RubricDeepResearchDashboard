@@ -17,12 +17,15 @@ import {
   RateReview as ReviewIcon,
   Category as CategoryIcon,
   Public as DomainIcon,
+  LocalShipping as DeliveryIcon,
 } from '@mui/icons-material'
 import DomainWise from '../components/predelivery/DomainWise'
 import TrainerWise from '../components/predelivery/TrainerWise'
 import ReviewerWise from '../components/predelivery/ReviewerWise'
-import TaskWise from '../components/predelivery/TaskWise'
-import { getOverallStats, getDomainStats } from '../services/api'
+import DeliveryTracker from '../components/clientdelivery/DeliveryTracker'
+import TaskWise from '../components/clientdelivery/TaskWise'
+import FeedbackUpload from '../components/clientdelivery/FeedbackUpload'
+import { getClientDeliveryOverallStats, getClientDeliveryDomainStats } from '../services/api'
 import type { OverallAggregation, DomainAggregation } from '../types'
 
 interface TabPanelProps {
@@ -38,8 +41,8 @@ function TabPanel(props: TabPanelProps) {
     <div
       role="tabpanel"
       hidden={value !== index}
-      id={`predelivery-tabpanel-${index}`}
-      aria-labelledby={`predelivery-tab-${index}`}
+      id={`clientdelivery-tabpanel-${index}`}
+      aria-labelledby={`clientdelivery-tab-${index}`}
       {...other}
     >
       {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
@@ -121,7 +124,7 @@ function SummaryCard({ title, value, icon, color }: SummaryCardProps) {
   )
 }
 
-export default function PreDelivery() {
+export default function ClientDelivery() {
   const [activeTab, setActiveTab] = useState(0)
   const [overallData, setOverallData] = useState<OverallAggregation | null>(null)
   const [domainData, setDomainData] = useState<DomainAggregation[]>([])
@@ -132,13 +135,13 @@ export default function PreDelivery() {
       try {
         setLoading(true)
         const [overall, domains] = await Promise.all([
-          getOverallStats(),
-          getDomainStats()
+          getClientDeliveryOverallStats(),
+          getClientDeliveryDomainStats()
         ])
         setOverallData(overall)
         setDomainData(domains)
       } catch (error) {
-        console.error('Failed to fetch pre-delivery summary data:', error)
+        console.error('Failed to fetch client delivery summary data:', error)
       } finally {
         setLoading(false)
       }
@@ -208,13 +211,18 @@ export default function PreDelivery() {
           <Grid item xs={12} sm={6} md={2.4}>
             <SummaryCard
               title="Quality Dimensions"
-              value={overallData.quality_dimensions.length.toLocaleString()}
+              value={overallData.quality_dimensions_count?.toLocaleString() || '0'}
               icon={<CategoryIcon />}
-              color="#2ecc71"
+              color="#10B981"
             />
           </Grid>
         </Grid>
       )}
+
+      {/* Upload Feedback Section */}
+      <Box sx={{ mb: 3 }}>
+        <FeedbackUpload />
+      </Box>
 
       <Box 
         sx={{ 
@@ -256,44 +264,54 @@ export default function PreDelivery() {
             icon={<BusinessIcon />}
             iconPosition="start"
             label="Domain wise"
-            id="predelivery-tab-0"
-            aria-controls="predelivery-tabpanel-0"
+            id="clientdelivery-tab-0"
+            aria-controls="clientdelivery-tabpanel-0"
           />
           <Tab
             icon={<SchoolIcon />}
             iconPosition="start"
             label="Trainer wise"
-            id="predelivery-tab-1"
-            aria-controls="predelivery-tabpanel-1"
+            id="clientdelivery-tab-1"
+            aria-controls="clientdelivery-tabpanel-1"
           />
           <Tab
             icon={<TrophyIcon />}
             iconPosition="start"
             label="Reviewer wise"
-            id="predelivery-tab-2"
-            aria-controls="predelivery-tabpanel-2"
+            id="clientdelivery-tab-2"
+            aria-controls="clientdelivery-tabpanel-2"
           />
           <Tab
             icon={<CalibratorIcon />}
             iconPosition="start"
             label="Task wise"
-            id="predelivery-tab-3"
-            aria-controls="predelivery-tabpanel-3"
+            id="clientdelivery-tab-3"
+            aria-controls="clientdelivery-tabpanel-3"
+          />
+          <Tab
+            icon={<DeliveryIcon />}
+            iconPosition="start"
+            label="Delivery Tracker"
+            id="clientdelivery-tab-4"
+            aria-controls="clientdelivery-tabpanel-4"
           />
         </Tabs>
       </Box>
 
       <TabPanel value={activeTab} index={0}>
-        <DomainWise />
+        <DomainWise isClientDelivery={true} />
       </TabPanel>
       <TabPanel value={activeTab} index={1}>
-        <TrainerWise />
+        <TrainerWise isClientDelivery={true} />
       </TabPanel>
       <TabPanel value={activeTab} index={2}>
-        <ReviewerWise />
+        <ReviewerWise isClientDelivery={true} />
       </TabPanel>
       <TabPanel value={activeTab} index={3}>
         <TaskWise />
+      </TabPanel>
+      <TabPanel value={activeTab} index={4}>
+        <DeliveryTracker />
       </TabPanel>
     </Box>
   )
