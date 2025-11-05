@@ -9,7 +9,7 @@ help:
 	@echo "  make start-frontend  - Start development server"
 	@echo "  make dev             - Start development server (alias)"
 	@echo "  make run             - Start development server (alias)"
-	@echo "  make stop            - Stop frontend server (kill port 3000)"
+	@echo "  make stop            - Stop frontend server (kill port 2000)"
 	@echo "  make build           - Build for production"
 	@echo "  make preview         - Preview production build"
 	@echo "  make clean           - Remove build artifacts and dependencies"
@@ -27,7 +27,7 @@ install:
 # Start development server
 start-frontend:
 	@echo "Starting frontend development server..."
-	@lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+	@lsof -ti:2000 | xargs kill -9 2>/dev/null || true
 	npm run dev
 
 # Aliases for start-frontend
@@ -36,8 +36,8 @@ run: start-frontend
 
 # Stop frontend server
 stop:
-	@echo "Stopping frontend server on port 3000..."
-	@lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+	@echo "Stopping frontend server on port 2000..."
+	@lsof -ti:2000 | xargs kill -9 2>/dev/null || true
 	@echo "✓ Frontend server stopped!"
 
 # Build for production

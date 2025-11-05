@@ -28,8 +28,20 @@ ENV/
 
 # Environment Variables
 .env
+.env.*
+*.env
 .env.local
-.env.*.local
+.env.development
+.env.production
+.env.test
+backend/.env
+backend/.env.*
+backend/.env.production
+backend/.env.development
+frontend/.env
+frontend/.env.*
+frontend/.env.production
+frontend/.env.development
 
 # Google Cloud Credentials
 *.json
@@ -54,4 +66,27 @@ htmlcov/
 # Logs
 *.log
 logs/
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Build outputs
+frontend/dist/
+frontend/build/
+
+# PM2
+.pm2/
+ecosystem.config.js
+pm2.config.js
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+*.tmp
 

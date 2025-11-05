@@ -33,7 +33,8 @@ install:
 # Run the backend server
 start-backend:
 	@echo "Starting backend server..."
-	. venv/bin/activate && uvicorn app.main:app --reload --port 8000
+	@echo "Loading configuration from .env file..."
+	. venv/bin/activate && python -m app.main
 
 # Run manual data sync
 sync:

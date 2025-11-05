@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     app_name: str = "Amazon Delivery Dashboard API"
     app_version: str = "1.0.0"
     debug: bool = False
+    host: str = "0.0.0.0"
+    port: int = 5000
     
     # BigQuery Settings
     gcp_project_id: str = "turing-gpt"

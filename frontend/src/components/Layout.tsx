@@ -83,13 +83,13 @@ export default function Layout({ children }: LayoutProps) {
             color: '#111827',
           }}
         >
-          Delivery Analytics
+          Deep Research
         </Typography>
         <Typography 
           variant="caption" 
           sx={{ 
             color: '#6B7280',
-            fontWeight: 500,
+            fontWeight: 300,
             letterSpacing: '0.05em',
             textTransform: 'uppercase',
             fontSize: '0.6875rem',

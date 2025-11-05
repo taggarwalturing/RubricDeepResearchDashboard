@@ -79,8 +79,8 @@ run-frontend: start-frontend
 run-all:
 	@echo "Starting both frontend and backend..."
 	@echo ""
-	@echo "Backend will run on: http://localhost:8000"
-	@echo "Frontend will run on: http://localhost:3000 (or next available port)"
+	@echo "Backend will run on: http://localhost:5000"
+	@echo "Frontend will run on: http://localhost:2000"
 	@echo ""
 	@echo "Press Ctrl+C to stop both servers"
 	@echo ""
