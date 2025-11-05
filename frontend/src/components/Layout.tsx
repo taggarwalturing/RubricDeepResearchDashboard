@@ -77,22 +77,22 @@ export default function Layout({ children }: LayoutProps) {
           variant="h5" 
           component="div" 
           sx={{ 
-            fontWeight: 700,
+            fontWeight: 800,
             letterSpacing: '-0.02em',
             mb: 0.5,
             color: '#111827',
+            fontSize: '16px',
           }}
         >
-          Deep Research
+          AMAZON DEEP RESEARCH
         </Typography>
         <Typography 
           variant="caption" 
           sx={{ 
             color: '#6B7280',
-            fontWeight: 300,
+            fontWeight: 500,
             letterSpacing: '0.05em',
             textTransform: 'uppercase',
-            fontSize: '0.6875rem',
           }}
         >
           Task metrics dashboard
