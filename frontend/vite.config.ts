@@ -23,6 +23,15 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    preview: {
+      port: parseInt(env.VITE_PORT || '2000'),
+      host: env.VITE_HOST || '0.0.0.0',
+      allowedHosts: [
+        'deep-research-dashboard.turing.com',
+        'localhost',
+        '127.0.0.1',
+      ],
+    },
   }
 })
 
