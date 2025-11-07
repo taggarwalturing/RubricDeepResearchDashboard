@@ -17,14 +17,11 @@ import {
 } from '@mui/icons-material'
 import { triggerS3Sync, type SyncResult } from '../../services/api'
 
-const SYNC_COOLDOWN = 60 * 60 * 1000 // 1 hour in milliseconds
 const LAST_SYNC_KEY = 'lastS3SyncTime'
 
 export default function S3SyncButton() {
   const [syncing, setSyncing] = useState(false)
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
-  const [canSync, setCanSync] = useState(true)
-  const [timeRemaining, setTimeRemaining] = useState<string>('')
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info'>('success')
@@ -35,15 +32,13 @@ export default function S3SyncButton() {
     if (lastSync) {
       const lastSyncDate = new Date(parseInt(lastSync))
       setLastSyncTime(lastSyncDate)
-      checkCooldown(lastSyncDate)
     }
   }, [])
 
   useEffect(() => {
-    // Update time remaining and display every 30 seconds for better UX
+    // Update display every 30 seconds for better UX
     const interval = setInterval(() => {
       if (lastSyncTime) {
-        checkCooldown(lastSyncTime)
         // Force re-render to update time ago display
         setLastSyncTime(new Date(lastSyncTime))
       }
@@ -52,30 +47,8 @@ export default function S3SyncButton() {
     return () => clearInterval(interval)
   }, [lastSyncTime])
 
-  const checkCooldown = (lastSync: Date) => {
-    const now = Date.now()
-    const timeSinceLastSync = now - lastSync.getTime()
-    
-    if (timeSinceLastSync < SYNC_COOLDOWN) {
-      setCanSync(false)
-      const remainingMs = SYNC_COOLDOWN - timeSinceLastSync
-      const remainingMinutes = Math.ceil(remainingMs / (60 * 1000))
-      const hours = Math.floor(remainingMinutes / 60)
-      const minutes = remainingMinutes % 60
-      
-      if (hours > 0) {
-        setTimeRemaining(`${hours}h ${minutes}m`)
-      } else {
-        setTimeRemaining(`${minutes}m`)
-      }
-    } else {
-      setCanSync(true)
-      setTimeRemaining('')
-    }
-  }
-
   const handleSync = async () => {
-    if (!canSync || syncing) return
+    if (syncing) return
 
     setSyncing(true)
     setSnackbarOpen(false)
@@ -87,7 +60,6 @@ export default function S3SyncButton() {
         const now = new Date()
         setLastSyncTime(now)
         localStorage.setItem(LAST_SYNC_KEY, now.getTime().toString())
-        checkCooldown(now)
 
         const filesProcessed = result.s3_ingestion?.files_processed || 0
         const workItemsIngested = result.s3_ingestion?.work_items_ingested || 0
@@ -119,8 +91,7 @@ export default function S3SyncButton() {
 
   const getButtonTooltip = () => {
     if (syncing) return 'Syncing...'
-    if (!canSync) return `Can sync again in ${timeRemaining}`
-    return 'Sync data from S3 (hourly limit)'
+    return 'Sync data from S3'
   }
 
   const formatLastSyncTimeUTC = () => {
@@ -158,7 +129,7 @@ export default function S3SyncButton() {
             size="small"
             startIcon={syncing ? <CircularProgress size={16} color="inherit" /> : <SyncIcon />}
             onClick={handleSync}
-            disabled={!canSync || syncing}
+            disabled={syncing}
             sx={{
               backgroundColor: '#10B981',
               textTransform: 'none',

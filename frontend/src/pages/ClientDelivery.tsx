@@ -170,7 +170,7 @@ export default function ClientDelivery() {
   return (
     <Box>
       {/* Header with Description and S3 Sync */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
         <Typography 
           variant="body2" 
           sx={{ 
