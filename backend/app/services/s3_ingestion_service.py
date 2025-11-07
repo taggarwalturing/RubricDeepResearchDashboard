@@ -25,8 +25,21 @@ class S3IngestionService:
     def __init__(self):
         self.settings = get_settings()
         
-        # Initialize S3 client with configured AWS profile
-        session = boto3.Session(profile_name=self.settings.s3_aws_profile)
+        # Initialize S3 client - use env vars if available, otherwise use profile
+        import os
+        if os.getenv('AWS_ACCESS_KEY_ID') and os.getenv('AWS_SECRET_ACCESS_KEY'):
+            # Use credentials from environment variables
+            session = boto3.Session(
+                aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+                region_name=os.getenv('AWS_REGION', 'us-east-1')
+            )
+            logger.info("Using AWS credentials from environment variables")
+        else:
+            # Fall back to AWS profile
+            session = boto3.Session(profile_name=self.settings.s3_aws_profile)
+            logger.info(f"Using AWS profile: {self.settings.s3_aws_profile}")
+        
         self.s3_client = session.client('s3')
         
         # Get S3 bucket and prefix from settings
