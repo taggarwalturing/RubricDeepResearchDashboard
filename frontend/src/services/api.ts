@@ -8,7 +8,8 @@ import type {
   FilterParams,
 } from '../types'
 
-const API_BASE_URL = '/api'
+// Use environment variable for API base URL with fallback to '/api'
+const API_BASE_URL = import.meta.env.VITE_API_PREFIX || '/api'
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -168,10 +169,10 @@ export const getFilterOptions = async (): Promise<{
 
   // Extract trainers
   const trainers = trainerData
-    .filter(t => t.trainer_level_id)
+    .filter(t => t.trainer_id)
     .map(t => ({
-      id: String(t.trainer_level_id),
-      name: t.trainer_name || `Trainer ${t.trainer_level_id}`
+      id: String(t.trainer_id),
+      name: t.trainer_name || `Trainer ${t.trainer_id}`
     }))
 
   return {
@@ -244,6 +245,33 @@ export const getDeliveryTracker = async (): Promise<DeliveryTrackerItem[]> => {
   
   const response = await apiClient.get<DeliveryTrackerItem[]>('/client-delivery/tracker')
   setCache(cacheKey, response.data)
+  return response.data
+}
+
+// Sync data from S3
+export interface SyncResult {
+  bigquery_sync: {
+    status: string
+    tables_synced?: Record<string, boolean>
+    error?: string
+  } | null
+  s3_ingestion: {
+    status: string
+    files_processed?: number
+    work_items_ingested?: number
+    duration_seconds?: number
+    errors?: string[]
+    error?: string
+  } | null
+  overall_status: string
+}
+
+export const triggerS3Sync = async (): Promise<SyncResult> => {
+  const response = await apiClient.post<SyncResult>('/sync?sync_bigquery=false&sync_s3=true')
+  // Clear cache after successful sync
+  if (response.data.overall_status === 'completed') {
+    clearCache()
+  }
   return response.data
 }
 

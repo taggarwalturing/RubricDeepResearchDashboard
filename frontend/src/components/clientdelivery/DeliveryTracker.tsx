@@ -73,6 +73,18 @@ export default function DeliveryTracker() {
 
   useEffect(() => {
     fetchData()
+    
+    // Listen for S3 sync events to refresh data
+    const handleS3Synced = () => {
+      console.log('🔄 S3 synced, refreshing delivery tracker...')
+      fetchData()
+    }
+    
+    window.addEventListener('s3Synced', handleS3Synced)
+    
+    return () => {
+      window.removeEventListener('s3Synced', handleS3Synced)
+    }
   }, [])
 
   // Initialize numeric filters when data changes

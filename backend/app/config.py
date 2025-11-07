@@ -1,7 +1,7 @@
 """
 Configuration management for the application
 """
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 from typing import Optional
 
@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     app_version: str = "1.0.0"
     debug: bool = False
     host: str = "0.0.0.0"
-    port: int = 5000
+    port: int = 8000
     
     # BigQuery Settings
     gcp_project_id: str = "turing-gpt"
@@ -52,12 +52,22 @@ class Settings(BaseSettings):
     s3_prefix: str = "Nova Deep Research - Turing Scale-Up/outputData/"
     s3_aws_profile: str = "amazon"  # AWS CLI profile name
     
+    # AWS Credentials
+    aws_region: Optional[str] = None
+    aws_access_key_id: Optional[str] = None
+    aws_secret_access_key: Optional[str] = None
+    aws_role_arn: Optional[str] = None
+    aws_s3_bucket_name: Optional[str] = None
+    
     # Project Settings
     project_start_date: str = "2025-09-26"  # Format: YYYY-MM-DD
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"  # Ignore extra fields in .env that aren't in the model
+    )
 
 
 @lru_cache()

@@ -27,6 +27,7 @@ import { DataGrid, GridColDef, GridSortModel, GridRowsProp } from '@mui/x-data-g
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
+import RefreshIcon from '@mui/icons-material/Refresh'
 import axios from 'axios'
 
 // Grouped task interface
@@ -104,6 +105,26 @@ export default function TaskWise() {
 
   useEffect(() => {
     fetchData()
+    
+    // Listen for feedback upload events to refresh data
+    const handleFeedbackUploaded = () => {
+      console.log('📤 Feedback uploaded, refreshing data...')
+      fetchData()
+    }
+    
+    // Listen for S3 sync events to refresh data
+    const handleS3Synced = () => {
+      console.log('🔄 S3 synced, refreshing data...')
+      fetchData()
+    }
+    
+    window.addEventListener('feedbackUploaded', handleFeedbackUploaded)
+    window.addEventListener('s3Synced', handleS3Synced)
+    
+    return () => {
+      window.removeEventListener('feedbackUploaded', handleFeedbackUploaded)
+      window.removeEventListener('s3Synced', handleS3Synced)
+    }
   }, [])
 
   useEffect(() => {
@@ -424,6 +445,23 @@ export default function TaskWise() {
     <Box sx={{ width: '100%', p: 3 }}>
       {/* Filter Bar */}
       <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<RefreshIcon />}
+          onClick={() => fetchData()}
+          disabled={loading}
+          sx={{
+            backgroundColor: '#2E5CFF',
+            textTransform: 'none',
+            fontWeight: 600,
+            '&:hover': {
+              backgroundColor: '#2347D5',
+            },
+          }}
+        >
+          Refresh
+        </Button>
         <TextField
           label="Date From"
           type="date"

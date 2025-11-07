@@ -859,6 +859,7 @@ class PostgresQueryService:
                 from sqlalchemy import func
                 
                 # Get all work items with their task details
+                # Note: Shows ALL work items regardless of task delivery status
                 results = session.query(
                     WorkItem.work_item_id,
                     WorkItem.task_id.label('workitem_task_id'),  # Original task_id from work_item
@@ -876,17 +877,17 @@ class PostgresQueryService:
                 ).outerjoin(
                     ReviewDetail,
                     Task.id == ReviewDetail.conversation_id
-                ).filter(
-                    Task.is_delivered == 'True'
                 ).distinct().all()
 
-                # Group by labelling_task_id
+                # Group by labelling_task_id (use work_item_id as fallback if no task match)
                 task_groups = {}
                 for row in results:
-                    labelling_task_id = row.labelling_task_id
+                    # Use labelling_task_id if available, otherwise use work_item_id as unique identifier
+                    labelling_task_id = row.labelling_task_id if row.labelling_task_id else f"wi_{row.work_item_id}"
+                    
                     if labelling_task_id not in task_groups:
                         task_groups[labelling_task_id] = {
-                            'task_id': labelling_task_id,  # This is the labelling task ID
+                            'task_id': row.labelling_task_id if row.labelling_task_id else row.workitem_task_id or row.work_item_id,  # Use best available ID
                             'task_score': float(row.task_score) if row.task_score is not None else None,
                             'work_items': []
                         }
@@ -898,7 +899,7 @@ class PostgresQueryService:
                         'delivery_date': row.delivery_date.strftime('%Y-%m-%d') if row.delivery_date else None,
                         'json_filename': row.json_filename,
                         'turing_status': row.turing_status,
-                        'client_status': row.client_status,
+                        'client_status': row.client_status or 'Pending',
                         'task_level_feedback': row.task_level_feedback,
                         'error_categories': row.error_categories
                     })
@@ -924,7 +925,7 @@ class PostgresQueryService:
                         overall_client_status = 'Pending'
                     
                     task_data.append({
-                        'task_id': task_id,
+                        'task_id': task_info['task_id'],  # Use the actual task_id from task_info
                         'task_score': task_info['task_score'],
                         'delivery_date': latest_delivery_date,
                         'work_item_count': len(work_items),

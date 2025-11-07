@@ -16,6 +16,7 @@ import {
   Description as FileIcon,
 } from '@mui/icons-material'
 import axios from 'axios'
+import { clearCache } from '../../services/api'
 
 interface UploadResult {
   success: boolean
@@ -31,6 +32,15 @@ export default function FeedbackUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null)
+  
+  // Define all columns used in work_item table
+  const expectedColumns = [
+    { name: 'Work Item Id', description: 'Unique work item identifier', required: true },
+    { name: 'Task Id', description: 'Task identifier', required: true },
+    { name: 'Verdict', description: 'Client feedback status (updates client_status)', required: true },
+    { name: 'Task Level Feedback', description: 'Task-level feedback text', required: true },
+    { name: 'Error Categories', description: 'Error category information', required: true },
+  ]
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -80,6 +90,11 @@ export default function FeedbackUpload() {
         // Reset file input
         const fileInput = document.getElementById('feedback-file-input') as HTMLInputElement
         if (fileInput) fileInput.value = ''
+        
+        // Clear API cache and trigger refresh
+        clearCache()
+        // Dispatch custom event to notify other components
+        window.dispatchEvent(new CustomEvent('feedbackUploaded'))
       }
     } catch (error: any) {
       setUploadResult({
@@ -254,7 +269,7 @@ export default function FeedbackUpload() {
         </Alert>
       )}
 
-      {/* Instructions */}
+      {/* Column Requirements */}
       <Paper
         sx={{
           p: 2,
@@ -263,22 +278,46 @@ export default function FeedbackUpload() {
           borderRadius: 1,
         }}
       >
-        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1F2937', mb: 1 }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1F2937', mb: 1.5 }}>
           Required Columns:
         </Typography>
-        <Box component="ul" sx={{ m: 0, pl: 2, color: '#6B7280' }}>
-          <Typography component="li" variant="caption">
-            <strong>Work Item Id</strong> - Unique work item identifier
-          </Typography>
-          <Typography component="li" variant="caption">
-            <strong>Task Id</strong> - Task identifier
-          </Typography>
-          <Typography component="li" variant="caption">
-            <strong>Verdict</strong> - Client feedback status (will update client_status)
-          </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+          {expectedColumns.map((col, index) => (
+            <Box 
+              key={index}
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+              }}
+            >
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  fontWeight: 600, 
+                  color: '#1F2937',
+                }}
+              >
+                {col.name}
+                {col.required && (
+                  <Chip 
+                    label="Required" 
+                    size="small" 
+                    sx={{ 
+                      ml: 1, 
+                      height: 16, 
+                      fontSize: '0.625rem',
+                      backgroundColor: '#FEE2E2',
+                      color: '#991B1B',
+                    }} 
+                  />
+                )}
+              </Typography>
+            </Box>
+          ))}
         </Box>
-        <Typography variant="caption" sx={{ color: '#6B7280', display: 'block', mt: 1 }}>
-          Other columns (taxonomy_label, Labelled Timestamp, etc.) are optional and will be ignored.
+        <Typography variant="caption" sx={{ color: '#6B7280', display: 'block', mt: 1.5, fontStyle: 'italic' }}>
+          Other columns will be ignored during upload.
         </Typography>
       </Paper>
     </Paper>

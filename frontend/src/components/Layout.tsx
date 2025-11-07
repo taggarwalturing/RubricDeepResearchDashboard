@@ -25,6 +25,10 @@ import {
 
 const drawerWidth = 260
 
+// Get app info from environment variables
+const APP_NAME = import.meta.env.VITE_APP_NAME || 'AMAZON DEEP RESEARCH'
+const APP_VERSION = import.meta.env.VITE_APP_VERSION || '1.0.0'
+
 interface MenuItem {
   text: string
   icon: JSX.Element
@@ -84,7 +88,7 @@ export default function Layout({ children }: LayoutProps) {
             fontSize: '16px',
           }}
         >
-          AMAZON DEEP RESEARCH
+          {APP_NAME.toUpperCase()}
         </Typography>
         <Typography 
           variant="caption" 
@@ -95,7 +99,7 @@ export default function Layout({ children }: LayoutProps) {
             textTransform: 'uppercase',
           }}
         >
-          Task metrics dashboard
+          Task metrics dashboard v{APP_VERSION}
         </Typography>
       </Toolbar>
       <Divider />

@@ -25,6 +25,7 @@ import ReviewerWise from '../components/predelivery/ReviewerWise'
 import DeliveryTracker from '../components/clientdelivery/DeliveryTracker'
 import TaskWise from '../components/clientdelivery/TaskWise'
 import FeedbackUpload from '../components/clientdelivery/FeedbackUpload'
+import S3SyncButton from '../components/clientdelivery/S3SyncButton'
 import { getClientDeliveryOverallStats, getClientDeliveryDomainStats } from '../services/api'
 import type { OverallAggregation, DomainAggregation } from '../types'
 
@@ -146,7 +147,20 @@ export default function ClientDelivery() {
         setLoading(false)
       }
     }
+    
     fetchData()
+    
+    // Listen for S3 sync events to refresh summary data
+    const handleS3Synced = () => {
+      console.log('🔄 S3 synced, refreshing summary stats...')
+      fetchData()
+    }
+    
+    window.addEventListener('s3Synced', handleS3Synced)
+    
+    return () => {
+      window.removeEventListener('s3Synced', handleS3Synced)
+    }
   }, [])
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -155,8 +169,8 @@ export default function ClientDelivery() {
 
   return (
     <Box>
-      {/* Description */}
-      <Box sx={{ mb: 3 }}>
+      {/* Header with Description and S3 Sync */}
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
         <Typography 
           variant="body2" 
           sx={{ 
@@ -167,6 +181,7 @@ export default function ClientDelivery() {
         >
           Comprehensive overview of delivery metrics and performance indicators
         </Typography>
+        <S3SyncButton />
       </Box>
 
       {/* Summary Cards */}
