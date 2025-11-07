@@ -34,12 +34,30 @@ class S3IngestionService:
                 region_name=self.settings.aws_region or 'us-east-1'
             )
             logger.info("Using AWS credentials from .env file")
+            
+            # If role ARN is provided, assume the role for S3 access
+            if self.settings.aws_role_arn:
+                sts_client = session.client('sts')
+                assumed_role = sts_client.assume_role(
+                    RoleArn=self.settings.aws_role_arn,
+                    RoleSessionName='rubric-dashboard-s3-session'
+                )
+                credentials = assumed_role['Credentials']
+                self.s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=credentials['AccessKeyId'],
+                    aws_secret_access_key=credentials['SecretAccessKey'],
+                    aws_session_token=credentials['SessionToken'],
+                    region_name=self.settings.aws_region or 'us-east-1'
+                )
+                logger.info(f"Assumed role: {self.settings.aws_role_arn}")
+            else:
+                self.s3_client = session.client('s3')
         else:
             # Fall back to AWS profile
             session = boto3.Session(profile_name=self.settings.s3_aws_profile)
             logger.info(f"Using AWS profile: {self.settings.s3_aws_profile}")
-        
-        self.s3_client = session.client('s3')
+            self.s3_client = session.client('s3')
         
         # Get S3 bucket and prefix from settings
         self.s3_bucket = self.settings.s3_bucket
