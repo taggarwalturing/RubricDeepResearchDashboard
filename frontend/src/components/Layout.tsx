@@ -21,6 +21,7 @@ import {
   Dashboard as DashboardIcon,
   Business as BusinessIcon,
   LocalShipping as DeliveryIcon,
+  Assessment as AssessmentIcon,
 } from '@mui/icons-material'
 
 const drawerWidth = 260
@@ -39,6 +40,7 @@ const menuItems: MenuItem[] = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Pre-Delivery', icon: <BusinessIcon />, path: '/pre-delivery' },
   { text: 'Post Delivery', icon: <DeliveryIcon />, path: '/post-delivery' },
+  { text: 'Client Dashboard', icon: <AssessmentIcon />, path: '/client-dashboard' },
 ]
 
 interface LayoutProps {

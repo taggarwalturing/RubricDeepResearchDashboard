@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import PreDelivery from './pages/PreDelivery'
 import ClientDelivery from './pages/ClientDelivery'
+import ClientDashboard from './pages/ClientDeliverySummary'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/pre-delivery" element={<PreDelivery />} />
           <Route path="/post-delivery" element={<ClientDelivery />} />
+          <Route path="/client-dashboard" element={<ClientDashboard />} />
         </Routes>
       </Layout>
     </Box>
