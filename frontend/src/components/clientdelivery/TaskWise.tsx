@@ -86,7 +86,7 @@ export default function TaskWise() {
       setLoading(true)
       setError(null)
       
-      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/client-delivery/task-wise`)
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || ''}/api/client-delivery/task-wise`)
       
       // Convert task_id to string for DataGrid compatibility
       const processedData = response.data.map((task: any) => ({

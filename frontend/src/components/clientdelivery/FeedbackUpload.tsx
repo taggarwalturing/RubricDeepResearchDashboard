@@ -73,7 +73,7 @@ export default function FeedbackUpload() {
       formData.append('file', selectedFile)
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/client-delivery/upload-feedback`,
+        `${import.meta.env.VITE_API_URL || ''}/api/client-delivery/upload-feedback`,
         formData,
         {
           headers: {
