@@ -34,6 +34,7 @@ import axios from 'axios'
 interface GroupedTask {
   task_id: string
   task_score: number | null
+  rework_count: number
   work_item_count: number
   delivery_date: string
   turing_status: string
@@ -144,6 +145,13 @@ export default function TaskWise() {
       const minScore = Math.min(...taskScores)
       const maxScore = Math.max(...taskScores)
       filters['task_score'] = { min: minScore, max: maxScore, currentRange: [minScore, maxScore] }
+    }
+
+    const reworkCounts = tasks.map(t => t.rework_count || 0)
+    if (reworkCounts.length > 0) {
+      const minRework = Math.min(...reworkCounts)
+      const maxRework = Math.max(...reworkCounts)
+      filters['rework_count'] = { min: minRework, max: maxRework, currentRange: [minRework, maxRework] }
     }
 
     const workItemCounts = tasks.map(t => t.work_item_count)
@@ -337,6 +345,24 @@ export default function TaskWise() {
       ),
     },
     {
+      field: 'rework_count',
+      headerName: 'Rework Count',
+      width: calculateColumnWidth('Rework Count', filteredData, 'rework_count'),
+      type: 'number',
+      renderHeader: () => renderHeaderWithDropdown('Rework Count', true, 'rework_count'),
+      renderCell: (params) => (
+        <Chip
+          label={params.value || 0}
+          size="small"
+          sx={{
+            backgroundColor: params.value > 0 ? '#FEF3C7' : '#E5E7EB',
+            color: params.value > 0 ? '#92400E' : '#6B7280',
+            fontWeight: 600,
+          }}
+        />
+      ),
+    },
+    {
       field: 'work_item_count',
       headerName: 'Work Items',
       width: calculateColumnWidth('Work Items', filteredData, 'work_item_count'),
@@ -516,6 +542,11 @@ export default function TaskWise() {
             </Box>
             <Box sx={{ minWidth: 100, mr: 2 }}>
               <Typography variant="body2" sx={{ fontWeight: 700, color: '#1F2937' }}>
+                Rework Count
+              </Typography>
+            </Box>
+            <Box sx={{ minWidth: 100, mr: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: '#1F2937' }}>
                 Work Items
               </Typography>
             </Box>
@@ -581,6 +612,18 @@ export default function TaskWise() {
                   <Typography variant="body2" sx={{ fontWeight: 600, color: '#1F2937' }}>
                     {task.task_score !== null ? Number(task.task_score).toFixed(2) : 'N/A'}
                   </Typography>
+                </Box>
+                
+                <Box sx={{ minWidth: 100, mr: 2 }}>
+                  <Chip
+                    label={task.rework_count || 0}
+                    size="small"
+                    sx={{
+                      backgroundColor: task.rework_count > 0 ? '#FEF3C7' : '#E5E7EB',
+                      color: task.rework_count > 0 ? '#92400E' : '#6B7280',
+                      fontWeight: 600,
+                    }}
+                  />
                 </Box>
                 
                 <Box sx={{ minWidth: 100, mr: 2 }}>

@@ -107,6 +107,22 @@ export default function ReviewerWise({ isClientDelivery = false }: ReviewerWiseP
       filters['task_count'] = { min: minTask, max: maxTask, currentRange: [minTask, maxTask] }
     }
 
+    // Initialize filter for total_rework_count
+    const totalReworkCounts = reviewers.map(r => r.total_rework_count || 0).filter(val => val !== null && val !== undefined)
+    if (totalReworkCounts.length > 0) {
+      const minRework = Math.min(...totalReworkCounts)
+      const maxRework = Math.max(...totalReworkCounts)
+      filters['total_rework_count'] = { min: minRework, max: maxRework, currentRange: [minRework, maxRework] }
+    }
+
+    // Initialize filter for average_rework_count
+    const avgReworkCounts = reviewers.map(r => r.average_rework_count || 0).filter(val => val !== null && val !== undefined)
+    if (avgReworkCounts.length > 0) {
+      const minAvgRework = Math.min(...avgReworkCounts)
+      const maxAvgRework = Math.max(...avgReworkCounts)
+      filters['average_rework_count'] = { min: minAvgRework, max: maxAvgRework, currentRange: [minAvgRework, maxAvgRework] }
+    }
+
     // Initialize filters for quality dimensions
     const allQualityDims = Array.from(new Set(reviewers.flatMap(r => r.quality_dimensions.map(qd => qd.name))))
     
@@ -385,6 +401,34 @@ export default function ReviewerWise({ isClientDelivery = false }: ReviewerWiseP
         </Typography>
       ),
     },
+    {
+      field: 'total_rework_count',
+      headerName: 'Total Reworks',
+      width: calculateColumnWidth('Total Reworks', filteredData, 'total_rework_count'),
+      type: 'number',
+      align: 'center' as const,
+      headerAlign: 'left' as const,
+      renderHeader: renderHeaderWithDropdown('Total Reworks', true, 'total_rework_count'),
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{ fontWeight: 600, color: '#1F2937', textAlign: 'center', width: '100%' }}>
+          {params.value || 0}
+        </Typography>
+      ),
+    },
+    {
+      field: 'average_rework_count',
+      headerName: 'Avg Rework',
+      width: calculateColumnWidth('Avg Rework', filteredData, 'average_rework_count'),
+      type: 'number',
+      align: 'center' as const,
+      headerAlign: 'left' as const,
+      renderHeader: renderHeaderWithDropdown('Avg Rework', true, 'average_rework_count'),
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{ fontWeight: 600, color: '#1F2937', textAlign: 'center', width: '100%' }}>
+          {params.value !== null && params.value !== undefined ? params.value.toFixed(2) : '0.00'}
+        </Typography>
+      ),
+    },
     ...allQualityDimensionNames.map((dimName) => ({
       field: `qd_${dimName}`,
       headerName: dimName,
@@ -432,6 +476,8 @@ export default function ReviewerWise({ isClientDelivery = false }: ReviewerWiseP
       reviewer_email: reviewer.reviewer_email,
       task_score: reviewer.average_task_score?.toFixed(2) || 'N/A',
       task_count: reviewer.task_count,
+      total_rework_count: reviewer.total_rework_count || 0,
+      average_rework_count: reviewer.average_rework_count || 0,
     }
     
     allQualityDimensionNames.forEach((dimName) => {

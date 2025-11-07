@@ -92,6 +92,7 @@ class Task(Base):
     colab_link = Column(Text, nullable=True)  # Collaboration link for the task
     week_number = Column(Integer, nullable=True, index=True)  # Week number from project start
     is_delivered = Column(String(10), nullable=True, index=True)  # "True" or "False" from task_deliver_info
+    rework_count = Column(Integer, nullable=True, index=True)  # Number of times task went to rework
     
     # Extracted domain (from CTE CASE statement)
     domain = Column(String(500), nullable=True, index=True)

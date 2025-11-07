@@ -121,6 +121,17 @@ export default function TaskWise() {
       filters['week_number'] = { min, max, currentRange: [min, max] }
     }
     
+    // Rework Count filter
+    const reworkCounts = tasks
+      .map(t => t.rework_count || 0)
+      .filter((r): r is number => r !== null && r !== undefined)
+    
+    if (reworkCounts.length > 0) {
+      const min = Math.min(...reworkCounts)
+      const max = Math.max(...reworkCounts)
+      filters['rework_count'] = { min, max, currentRange: [min, max] }
+    }
+    
     // Quality dimension filters
     const allQualityDimensions = new Set<string>()
     tasks.forEach(task => {
@@ -593,6 +604,28 @@ export default function TaskWise() {
       ),
     },
     {
+      field: 'rework_count',
+      headerName: 'Rework Count',
+      width: calculateColumnWidth('Rework Count', filteredData, 'rework_count'),
+      type: 'number',
+      align: 'center' as const,
+      headerAlign: 'left' as const,
+      renderHeader: renderHeaderWithDropdown('Rework Count', true, 'rework_count'),
+      renderCell: (params) => (
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 600,
+            color: '#1F2937',
+            textAlign: 'center',
+            width: '100%',
+          }}
+        >
+          {params.value !== null && params.value !== undefined ? params.value : 0}
+        </Typography>
+      ),
+    },
+    {
       field: 'week_number',
       headerName: 'Week Number',
       width: calculateColumnWidth('Week Number', filteredData, 'week_number'),
@@ -697,6 +730,7 @@ export default function TaskWise() {
       id: index,
       task_id: task.task_id,
       task_score: task.task_score,
+      rework_count: task.rework_count || 0,
       week_number: task.week_number,
       annotator_id: task.annotator_id,
       annotator_name: task.annotator_name,

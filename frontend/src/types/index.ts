@@ -8,6 +8,8 @@ export interface DomainAggregation {
   domain: string | null
   task_count: number
   average_task_score: number | null
+  total_rework_count: number
+  average_rework_count: number
   quality_dimensions: QualityDimensionStats[]
 }
 
@@ -17,6 +19,8 @@ export interface ReviewerAggregation {
   reviewer_email: string | null
   task_count: number
   average_task_score: number | null
+  total_rework_count: number
+  average_rework_count: number
   quality_dimensions: QualityDimensionStats[]
 }
 
@@ -26,6 +30,8 @@ export interface TrainerLevelAggregation {
   trainer_email: string | null
   task_count: number
   average_task_score: number | null
+  total_rework_count: number
+  average_rework_count: number
   quality_dimensions: QualityDimensionStats[]
 }
 
@@ -36,6 +42,8 @@ export interface OverallAggregation {
   domain_count: number
   delivered_tasks: number
   delivered_files: number
+  total_rework_count: number
+  average_rework_count: number
   quality_dimensions: QualityDimensionStats[]
   quality_dimensions_count?: number
 }
@@ -58,6 +66,7 @@ export interface TaskLevelInfo {
   colab_link: string | null
   updated_at: string | null
   week_number: number | null
+  rework_count: number | null
   quality_dimensions: Record<string, number>
 }
 

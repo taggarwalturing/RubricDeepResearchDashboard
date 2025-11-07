@@ -654,3 +654,69 @@ async def upload_client_feedback(file: UploadFile = File(...)) -> Dict[str, Any]
             detail=f"Error processing upload: {str(e)}"
         )
 
+
+@router.get(
+    "/sync-info",
+    response_model=Dict[str, Any],
+    summary="Get data sync information",
+    description="Get current UTC time and last BigQuery sync information"
+)
+async def get_sync_info() -> Dict[str, Any]:
+    """
+    Get data synchronization information
+    
+    Returns:
+    - Current UTC time
+    - Last sync time from BigQuery
+    - Sync status
+    """
+    try:
+        from datetime import datetime, timezone
+        from app.services.db_service import get_db_service
+        from app.models.db_models import DataSyncLog
+        from sqlalchemy import desc
+        
+        db_service = get_db_service()
+        
+        with db_service.get_session() as session:
+            # Get the most recent completed sync
+            last_sync = session.query(DataSyncLog).filter(
+                DataSyncLog.sync_status == 'completed'
+            ).order_by(
+                desc(DataSyncLog.sync_completed_at)
+            ).first()
+            
+            current_utc = datetime.now(timezone.utc)
+            
+            sync_info = {
+                'current_utc_time': current_utc.isoformat(),
+                'last_sync_time': last_sync.sync_completed_at.isoformat() if last_sync and last_sync.sync_completed_at else None,
+                'last_sync_type': last_sync.sync_type if last_sync else None,
+                'tables_synced': []
+            }
+            
+            # Get all tables from the last sync batch
+            if last_sync:
+                recent_syncs = session.query(DataSyncLog).filter(
+                    DataSyncLog.sync_completed_at == last_sync.sync_completed_at,
+                    DataSyncLog.sync_status == 'completed'
+                ).all()
+                
+                sync_info['tables_synced'] = [
+                    {
+                        'table_name': sync.table_name,
+                        'records_synced': sync.records_synced,
+                        'sync_started_at': sync.sync_started_at.isoformat() if sync.sync_started_at else None
+                    }
+                    for sync in recent_syncs
+                ]
+            
+            return sync_info
+            
+    except Exception as e:
+        logger.error(f"Error getting sync info: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving sync information: {str(e)}"
+        )
+

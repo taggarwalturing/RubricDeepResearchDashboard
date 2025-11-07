@@ -115,6 +115,22 @@ export default function TrainerWise({ isClientDelivery = false }: TrainerWisePro
       filters['task_count'] = { min: minTask, max: maxTask, currentRange: [minTask, maxTask] }
     }
 
+    // Initialize filter for total_rework_count
+    const totalReworkCounts = trainers.map(t => t.total_rework_count || 0).filter(val => val !== null && val !== undefined)
+    if (totalReworkCounts.length > 0) {
+      const minRework = Math.min(...totalReworkCounts)
+      const maxRework = Math.max(...totalReworkCounts)
+      filters['total_rework_count'] = { min: minRework, max: maxRework, currentRange: [minRework, maxRework] }
+    }
+
+    // Initialize filter for average_rework_count
+    const avgReworkCounts = trainers.map(t => t.average_rework_count || 0).filter(val => val !== null && val !== undefined)
+    if (avgReworkCounts.length > 0) {
+      const minAvgRework = Math.min(...avgReworkCounts)
+      const maxAvgRework = Math.max(...avgReworkCounts)
+      filters['average_rework_count'] = { min: minAvgRework, max: maxAvgRework, currentRange: [minAvgRework, maxAvgRework] }
+    }
+
     // Initialize filters for quality dimensions
     const allQualityDims = Array.from(new Set(trainers.flatMap(t => t.quality_dimensions.map(qd => qd.name))))
     
@@ -393,6 +409,34 @@ export default function TrainerWise({ isClientDelivery = false }: TrainerWisePro
         </Typography>
       ),
     },
+    {
+      field: 'total_rework_count',
+      headerName: 'Total Reworks',
+      width: calculateColumnWidth('Total Reworks', filteredData, 'total_rework_count'),
+      type: 'number',
+      align: 'center' as const,
+      headerAlign: 'left' as const,
+      renderHeader: renderHeaderWithDropdown('Total Reworks', true, 'total_rework_count'),
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{ fontWeight: 600, color: '#1F2937', textAlign: 'center', width: '100%' }}>
+          {params.value || 0}
+        </Typography>
+      ),
+    },
+    {
+      field: 'average_rework_count',
+      headerName: 'Avg Rework',
+      width: calculateColumnWidth('Avg Rework', filteredData, 'average_rework_count'),
+      type: 'number',
+      align: 'center' as const,
+      headerAlign: 'left' as const,
+      renderHeader: renderHeaderWithDropdown('Avg Rework', true, 'average_rework_count'),
+      renderCell: (params) => (
+        <Typography variant="body2" sx={{ fontWeight: 600, color: '#1F2937', textAlign: 'center', width: '100%' }}>
+          {params.value !== null && params.value !== undefined ? params.value.toFixed(2) : '0.00'}
+        </Typography>
+      ),
+    },
     ...allQualityDimensionNames.map((dimName) => ({
       field: `qd_${dimName}`,
       headerName: dimName,
@@ -440,6 +484,8 @@ export default function TrainerWise({ isClientDelivery = false }: TrainerWisePro
       trainer_email: trainer.trainer_email,
       task_score: trainer.average_task_score?.toFixed(2) || 'N/A',
       task_count: trainer.task_count,
+      total_rework_count: trainer.total_rework_count || 0,
+      average_rework_count: trainer.average_rework_count || 0,
     }
     
     allQualityDimensionNames.forEach((dimName) => {

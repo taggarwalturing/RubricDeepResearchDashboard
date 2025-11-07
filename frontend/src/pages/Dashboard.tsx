@@ -377,13 +377,17 @@ export default function Dashboard() {
   return (
     <Box sx={{ flexGrow: 1, bgcolor: '#F8FAFC', minHeight: '100vh', py: 4 }}>
       <Container maxWidth="xl">
-        {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, color: '#1A1F36', mb: 1 }}>
-            Analytics Dashboard
-          </Typography>
-          <Typography variant="body1" sx={{ color: '#6B7280' }}>
-            Comprehensive insights and performance metrics
+        {/* Description */}
+        <Box sx={{ mb: 3 }}>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: '#6B7280',
+              fontSize: '0.875rem',
+              lineHeight: 1.6,
+            }}
+          >
+            Comprehensive overview of delivery metrics and performance indicators
           </Typography>
         </Box>
 

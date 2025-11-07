@@ -76,7 +76,8 @@ class PostgresQueryService:
             'name': None,
             'conversation_ids': set(),
             'scores': [],
-            'task_scores': {}  # conversation_id -> task_score mapping
+            'task_scores': {},  # conversation_id -> task_score mapping
+            'rework_counts': {}  # conversation_id -> rework_count mapping
         }))
         
         for row in results:
@@ -91,6 +92,7 @@ class PostgresQueryService:
                 conversation_id = row.conversation_id
                 score = row.score
                 task_score = getattr(row, 'task_score', None)
+                rework_count = getattr(row, 'rework_count', None)
                 
                 grouped_data[group_value][name]['name'] = name
                 
@@ -99,6 +101,9 @@ class PostgresQueryService:
                     # Store task_score per conversation_id
                     if task_score is not None:
                         grouped_data[group_value][name]['task_scores'][conversation_id] = task_score
+                    # Store rework_count per conversation_id
+                    if rework_count is not None:
+                        grouped_data[group_value][name]['rework_counts'][conversation_id] = rework_count
                 
                 if score is not None:
                     grouped_data[group_value][name]['scores'].append(score)
@@ -108,7 +113,8 @@ class PostgresQueryService:
         for group_value, dimensions in grouped_data.items():
             quality_dimensions = []
             all_conversation_ids = set()
-            all_task_scores = []
+            all_task_scores = {}  # conversation_id -> task_score mapping
+            all_rework_counts = {}  # conversation_id -> rework_count mapping (deduplicated)
             
             for name, data in dimensions.items():
                 avg_score = None
@@ -116,8 +122,10 @@ class PostgresQueryService:
                     avg_score = sum(data['scores']) / len(data['scores'])
                 
                 all_conversation_ids.update(data['conversation_ids'])
-                # Collect all task scores for this group
-                all_task_scores.extend(data['task_scores'].values())
+                # Collect all task scores for this group (deduplicated by conversation_id)
+                all_task_scores.update(data['task_scores'])
+                # Collect all rework counts for this group (deduplicated by conversation_id)
+                all_rework_counts.update(data['rework_counts'])
                 
                 quality_dimensions.append({
                     'name': data['name'],
@@ -128,14 +136,22 @@ class PostgresQueryService:
             # Sort by name for consistency
             quality_dimensions.sort(key=lambda x: x['name'])
             
-            # Calculate average task score for this group
+            # Calculate average task score for this group (using deduplicated values)
             average_task_score = None
             if all_task_scores:
-                average_task_score = round(sum(all_task_scores) / len(all_task_scores), 2)
+                task_score_values = list(all_task_scores.values())
+                average_task_score = round(sum(task_score_values) / len(task_score_values), 2)
+            
+            # Calculate rework statistics (using deduplicated values)
+            rework_count_values = list(all_rework_counts.values())
+            total_rework_count = sum(rework_count_values) if rework_count_values else 0
+            average_rework_count = round(sum(rework_count_values) / len(rework_count_values), 2) if rework_count_values else 0
             
             item = {
                 'task_count': len(all_conversation_ids),
                 'average_task_score': average_task_score,
+                'total_rework_count': total_rework_count,
+                'average_rework_count': average_rework_count,
                 'quality_dimensions': quality_dimensions
             }
             
@@ -151,7 +167,7 @@ class PostgresQueryService:
         Process aggregation results for client delivery (counts based on work_item.task_id)
         
         Args:
-            results: Query results with domain/name/score/task_score/task_id fields
+            results: Query results with domain/name/score/task_score/task_id/rework_count fields
             group_key: Key to group by (e.g., 'domain', 'human_role_id', 'reviewer_id')
             
         Returns:
@@ -162,7 +178,8 @@ class PostgresQueryService:
             'name': None,
             'task_ids': set(),  # Changed from conversation_ids to task_ids
             'scores': [],
-            'task_scores': {}  # task_id -> task_score mapping
+            'task_scores': {},  # task_id -> task_score mapping
+            'rework_counts': {}  # task_id -> rework_count mapping
         }))
         
         for row in results:
@@ -177,6 +194,7 @@ class PostgresQueryService:
                 task_id = row.task_id  # Use work_item.task_id
                 score = row.score
                 task_score = getattr(row, 'task_score', None)
+                rework_count = getattr(row, 'rework_count', None)
                 
                 grouped_data[group_value][name]['name'] = name
                 
@@ -185,6 +203,9 @@ class PostgresQueryService:
                     # Store task_score per task_id
                     if task_score is not None:
                         grouped_data[group_value][name]['task_scores'][task_id] = task_score
+                    # Store rework_count per task_id (deduplicated by task_id)
+                    if rework_count is not None:
+                        grouped_data[group_value][name]['rework_counts'][task_id] = rework_count
                 
                 if score is not None:
                     grouped_data[group_value][name]['scores'].append(score)
@@ -194,7 +215,8 @@ class PostgresQueryService:
         for group_value, dimensions in grouped_data.items():
             quality_dimensions = []
             all_task_ids = set()
-            all_task_scores = []
+            all_task_scores = {}  # Deduplicated by task_id
+            all_rework_counts = {}  # Deduplicated by task_id
             
             for name, data in dimensions.items():
                 avg_score = None
@@ -202,8 +224,10 @@ class PostgresQueryService:
                     avg_score = sum(data['scores']) / len(data['scores'])
                 
                 all_task_ids.update(data['task_ids'])
-                # Collect all task scores for this group
-                all_task_scores.extend(data['task_scores'].values())
+                # Collect all task scores for this group (deduplicated)
+                all_task_scores.update(data['task_scores'])
+                # Collect all rework counts for this group (deduplicated)
+                all_rework_counts.update(data['rework_counts'])
                 
                 quality_dimensions.append({
                     'name': data['name'],
@@ -214,14 +238,22 @@ class PostgresQueryService:
             # Sort by name for consistency
             quality_dimensions.sort(key=lambda x: x['name'])
             
-            # Calculate average task score for this group
+            # Calculate average task score for this group (using deduplicated values)
             average_task_score = None
             if all_task_scores:
-                average_task_score = round(sum(all_task_scores) / len(all_task_scores), 2)
+                task_score_values = list(all_task_scores.values())
+                average_task_score = round(sum(task_score_values) / len(task_score_values), 2)
+            
+            # Calculate rework statistics (using deduplicated values)
+            rework_count_values = list(all_rework_counts.values())
+            total_rework_count = sum(rework_count_values) if rework_count_values else 0
+            average_rework_count = round(sum(rework_count_values) / len(rework_count_values), 2) if rework_count_values else 0
             
             item = {
                 'task_count': len(all_task_ids),  # Count distinct task_ids
                 'average_task_score': average_task_score,
+                'total_rework_count': total_rework_count,
+                'average_rework_count': average_rework_count,
                 'quality_dimensions': quality_dimensions
             }
             
@@ -237,7 +269,10 @@ class PostgresQueryService:
         try:
             with self.db_service.get_session() as session:
                 # Get all review_detail records where is_delivered = 'False' (Pre-Delivery only)
-                query = session.query(ReviewDetail).filter(ReviewDetail.is_delivered == 'False')
+                # Join with Task to get rework_count
+                query = session.query(ReviewDetail, Task.rework_count).outerjoin(
+                    Task, ReviewDetail.conversation_id == Task.id
+                ).filter(ReviewDetail.is_delivered == 'False')
                 
                 # Apply filters if provided
                 if filters:
@@ -256,8 +291,14 @@ class PostgresQueryService:
                 
                 results = query.all()
                 
+                # Convert results to include rework_count as attribute
+                processed_results = []
+                for review_detail, rework_count in results:
+                    review_detail.rework_count = rework_count
+                    processed_results.append(review_detail)
+                
                 # Process aggregation
-                aggregated = self._process_aggregation_results(results, group_key=None)
+                aggregated = self._process_aggregation_results(processed_results, group_key=None)
                 
                 if not aggregated:
                     return {
@@ -275,13 +316,13 @@ class PostgresQueryService:
                 unique_trainers = set()
                 unique_domains = set()
                 
-                for row in results:
-                    if row.reviewer_id:
-                        unique_reviewers.add(row.reviewer_id)
-                    if row.human_role_id:
-                        unique_trainers.add(row.human_role_id)
-                    if row.domain:
-                        unique_domains.add(row.domain)
+                for review_detail, rework_count in results:
+                    if review_detail.reviewer_id:
+                        unique_reviewers.add(review_detail.reviewer_id)
+                    if review_detail.human_role_id:
+                        unique_trainers.add(review_detail.human_role_id)
+                    if review_detail.domain:
+                        unique_domains.add(review_detail.domain)
                 
                 # Get work_item stats (delivered tasks and files)
                 from app.models.db_models import WorkItem
@@ -307,7 +348,10 @@ class PostgresQueryService:
         try:
             with self.db_service.get_session() as session:
                 # Get all review_detail records where is_delivered = 'False' (Pre-Delivery only)
-                query = session.query(ReviewDetail).filter(ReviewDetail.is_delivered == 'False')
+                # Join with Task to get rework_count
+                query = session.query(ReviewDetail, Task.rework_count).outerjoin(
+                    Task, ReviewDetail.conversation_id == Task.id
+                ).filter(ReviewDetail.is_delivered == 'False')
                 
                 # Apply filters if provided
                 if filters:
@@ -326,8 +370,14 @@ class PostgresQueryService:
                 
                 results = query.all()
                 
+                # Convert results to include rework_count as attribute
+                processed_results = []
+                for review_detail, rework_count in results:
+                    review_detail.rework_count = rework_count
+                    processed_results.append(review_detail)
+                
                 # Process aggregation by domain
-                aggregated = self._process_aggregation_results(results, group_key='domain')
+                aggregated = self._process_aggregation_results(processed_results, group_key='domain')
                 
                 # Format for API response
                 for item in aggregated:
@@ -349,7 +399,10 @@ class PostgresQueryService:
             
             with self.db_service.get_session() as session:
                 # Get all review_detail records where is_delivered = 'False' (Pre-Delivery only)
-                query = session.query(ReviewDetail).filter(ReviewDetail.is_delivered == 'False')
+                # Join with Task to get rework_count
+                query = session.query(ReviewDetail, Task.rework_count).outerjoin(
+                    Task, ReviewDetail.conversation_id == Task.id
+                ).filter(ReviewDetail.is_delivered == 'False')
                 
                 # Apply filters if provided
                 if filters:
@@ -368,8 +421,14 @@ class PostgresQueryService:
                 
                 results = query.all()
                 
+                # Convert results to include rework_count as attribute
+                processed_results = []
+                for review_detail, rework_count in results:
+                    review_detail.rework_count = rework_count
+                    processed_results.append(review_detail)
+                
                 # Process aggregation by trainer
-                aggregated = self._process_aggregation_results(results, group_key='human_role_id')
+                aggregated = self._process_aggregation_results(processed_results, group_key='human_role_id')
                 
                 # Format for API response
                 for item in aggregated:
@@ -397,7 +456,10 @@ class PostgresQueryService:
             
             with self.db_service.get_session() as session:
                 # Get all review_detail records where is_delivered = 'False' (Pre-Delivery only)
-                query = session.query(ReviewDetail).filter(ReviewDetail.is_delivered == 'False')
+                # Join with Task to get rework_count
+                query = session.query(ReviewDetail, Task.rework_count).outerjoin(
+                    Task, ReviewDetail.conversation_id == Task.id
+                ).filter(ReviewDetail.is_delivered == 'False')
                 
                 # Apply filters if provided
                 if filters:
@@ -416,8 +478,14 @@ class PostgresQueryService:
                 
                 results = query.all()
                 
+                # Convert results to include rework_count as attribute
+                processed_results = []
+                for review_detail, rework_count in results:
+                    review_detail.rework_count = rework_count
+                    processed_results.append(review_detail)
+                
                 # Process aggregation by reviewer
-                aggregated = self._process_aggregation_results(results, group_key='reviewer_id')
+                aggregated = self._process_aggregation_results(processed_results, group_key='reviewer_id')
                 
                 # Format for API response
                 for item in aggregated:
@@ -445,8 +513,8 @@ class PostgresQueryService:
             
             with self.db_service.get_session() as session:
                 # Get all review_detail records where is_delivered = 'False' (Pre-Delivery only)
-                # with colab_link and week_number from task table
-                query = session.query(ReviewDetail, Task.colab_link, Task.week_number).outerjoin(
+                # with colab_link, week_number, and rework_count from task table
+                query = session.query(ReviewDetail, Task.colab_link, Task.week_number, Task.rework_count).outerjoin(
                     Task, ReviewDetail.conversation_id == Task.id
                 ).filter(ReviewDetail.is_delivered == 'False')
                 
@@ -495,10 +563,11 @@ class PostgresQueryService:
                     'colab_link': None,
                     'updated_at': None,
                     'week_number': None,
+                    'rework_count': None,
                     'quality_dimensions': {}
                 })
                 
-                for row, colab_link, week_number in results:
+                for row, colab_link, week_number, rework_count in results:
                     task_id = row.conversation_id
                     if not task_id:
                         continue
@@ -527,6 +596,7 @@ class PostgresQueryService:
                         task_data[task_id]['colab_link'] = colab_link
                         task_data[task_id]['updated_at'] = row.updated_at.isoformat() if row.updated_at else None
                         task_data[task_id]['week_number'] = week_number
+                        task_data[task_id]['rework_count'] = rework_count
                     
                     # Add quality dimension scores
                     if row.name and row.score is not None:
@@ -552,12 +622,13 @@ class PostgresQueryService:
                 # Also get reviewer_id from review_detail to count unique reviewers
                 from app.models.db_models import TaskReviewedInfo
                 
-                # Get distinct work_item task_ids with domain and trainer info
+                # Get distinct work_item task_ids with domain, trainer info, and rework_count
                 task_query = session.query(
                     WorkItem.task_id,
                     Task.domain,
                     Task.current_user_id,
-                    TaskReviewedInfo.task_score
+                    TaskReviewedInfo.task_score,
+                    Task.rework_count
                 ).select_from(WorkItem).join(
                     Task, WorkItem.colab_link == Task.colab_link
                 ).outerjoin(
@@ -602,6 +673,7 @@ class PostgresQueryService:
                 unique_domains = set()
                 unique_trainers = set()
                 task_scores = []
+                rework_counts = []
                 
                 for row in task_results:
                     if row.domain:
@@ -610,8 +682,12 @@ class PostgresQueryService:
                         unique_trainers.add(row.current_user_id)
                     if row.task_score is not None:
                         task_scores.append(float(row.task_score))
+                    if row.rework_count is not None:
+                        rework_counts.append(int(row.rework_count))
                 
                 avg_score = sum(task_scores) / len(task_scores) if task_scores else 0
+                total_rework_count = sum(rework_counts) if rework_counts else 0
+                average_rework_count = round(sum(rework_counts) / len(rework_counts), 2) if rework_counts else 0
                 
                 # Get quality dimensions count from review_detail
                 # Join with work_item to ensure we only count QDs for delivered work items
@@ -637,7 +713,9 @@ class PostgresQueryService:
                     'reviewer_count': reviewer_count,
                     'trainer_count': len(unique_trainers),
                     'domain_count': len(unique_domains),
-                    'quality_dimensions_count': quality_dimensions_count
+                    'quality_dimensions_count': quality_dimensions_count,
+                    'total_rework_count': total_rework_count,
+                    'average_rework_count': average_rework_count
                 }
         except Exception as e:
             logger.error(f"Error getting client delivery aggregation: {e}")
@@ -648,13 +726,14 @@ class PostgresQueryService:
         Task count based on distinct work_item.task_id"""
         try:
             with self.db_service.get_session() as session:
-                # Get review_detail joined with work_item to get task_id
+                # Get review_detail joined with work_item to get task_id and rework_count
                 query = session.query(
                     ReviewDetail.domain,
                     ReviewDetail.name,
                     ReviewDetail.score,
                     ReviewDetail.task_score,
-                    WorkItem.task_id
+                    WorkItem.task_id,
+                    Task.rework_count
                 ).select_from(ReviewDetail).join(
                     Task, ReviewDetail.conversation_id == Task.id
                 ).join(
@@ -700,13 +779,14 @@ class PostgresQueryService:
             contributor_map = self._get_contributor_map()
             
             with self.db_service.get_session() as session:
-                # Get review_detail joined with work_item to get task_id
+                # Get review_detail joined with work_item to get task_id and rework_count
                 query = session.query(
                     ReviewDetail.human_role_id,
                     ReviewDetail.name,
                     ReviewDetail.score,
                     ReviewDetail.task_score,
-                    WorkItem.task_id
+                    WorkItem.task_id,
+                    Task.rework_count
                 ).select_from(ReviewDetail).join(
                     Task, ReviewDetail.conversation_id == Task.id
                 ).join(
@@ -760,13 +840,14 @@ class PostgresQueryService:
             contributor_map = self._get_contributor_map()
             
             with self.db_service.get_session() as session:
-                # Get review_detail joined with work_item to get task_id
+                # Get review_detail joined with work_item to get task_id and rework_count
                 query = session.query(
                     ReviewDetail.reviewer_id,
                     ReviewDetail.name,
                     ReviewDetail.score,
                     ReviewDetail.task_score,
-                    WorkItem.task_id
+                    WorkItem.task_id,
+                    Task.rework_count
                 ).select_from(ReviewDetail).join(
                     Task, ReviewDetail.conversation_id == Task.id
                 ).join(
@@ -867,6 +948,7 @@ class PostgresQueryService:
                     Task.id.label('labelling_task_id'),  # Task.id is the conversation/task ID
                     WorkItem.json_filename,
                     ReviewDetail.task_score,
+                    Task.rework_count,
                     WorkItem.turing_status,
                     WorkItem.client_status,
                     WorkItem.task_level_feedback,
@@ -889,6 +971,7 @@ class PostgresQueryService:
                         task_groups[labelling_task_id] = {
                             'task_id': row.labelling_task_id if row.labelling_task_id else row.workitem_task_id or row.work_item_id,  # Use best available ID
                             'task_score': float(row.task_score) if row.task_score is not None else None,
+                            'rework_count': int(row.rework_count) if row.rework_count is not None else 0,
                             'work_items': []
                         }
                     
@@ -927,6 +1010,7 @@ class PostgresQueryService:
                     task_data.append({
                         'task_id': task_info['task_id'],  # Use the actual task_id from task_info
                         'task_score': task_info['task_score'],
+                        'rework_count': task_info['rework_count'],
                         'delivery_date': latest_delivery_date,
                         'work_item_count': len(work_items),
                         'turing_status': overall_turing_status,

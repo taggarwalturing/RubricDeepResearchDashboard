@@ -257,7 +257,7 @@ class DataSyncService:
     
     def _build_task_query(self) -> str:
         """
-        Build the task CTE query to extract tasks with domain and is_delivered
+        Build the task CTE query to extract tasks with domain, is_delivered, and rework_count
         """
         return f"""
             WITH task_reviewed_info AS ( 
@@ -298,6 +298,14 @@ class DataSyncService:
                             AND rn.status = 'published'
                     )
             ),
+            rework_counts AS (
+                SELECT 
+                    conversation_id,
+                    COUNTIF(old_status = 'rework' OR new_status = 'rework') AS rework_count
+                FROM `turing-gpt.prod_labeling_tool_z.conversation_status_history`
+                WHERE conversation_id IN (SELECT r_id FROM task_reviewed_info)
+                GROUP BY conversation_id
+            ),
             task AS (
                 SELECT 
                     c.id,
@@ -310,6 +318,7 @@ class DataSyncService:
                     c.current_user_id,
                     c.colab_link,
                     tdi.is_delivered,
+                    COALESCE(rc.rework_count, 0) AS rework_count,
                     CASE 
                         WHEN REGEXP_CONTAINS(c.statement, r'\\*\\*domain\\*\\*') THEN
                             TRIM(REGEXP_EXTRACT(c.statement, r'\\*\\*domain\\*\\*\\s*-\\s*([^\\n]+)'))
@@ -320,6 +329,8 @@ class DataSyncService:
                 FROM `{self.settings.gcp_project_id}.{self.settings.bigquery_dataset}.conversation` c
                 INNER JOIN task_reviewed_info AS tdi
                     ON tdi.r_id = c.id
+                LEFT JOIN rework_counts AS rc
+                    ON rc.conversation_id = c.id
                 WHERE c.project_id = {self.settings.project_id_filter} 
                     AND c.status = 'completed'
             )

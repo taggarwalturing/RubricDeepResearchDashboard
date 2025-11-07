@@ -7,6 +7,7 @@ import {
   Grid,
   Card,
   CircularProgress,
+  Chip,
 } from '@mui/material'
 import {
   Business as BusinessIcon,
@@ -17,6 +18,7 @@ import {
   RateReview as ReviewIcon,
   Category as CategoryIcon,
   Public as DomainIcon,
+  AccessTime as AccessTimeIcon,
 } from '@mui/icons-material'
 import DomainWise from '../components/predelivery/DomainWise'
 import TrainerWise from '../components/predelivery/TrainerWise'
@@ -24,6 +26,7 @@ import ReviewerWise from '../components/predelivery/ReviewerWise'
 import TaskWise from '../components/predelivery/TaskWise'
 import { getOverallStats, getDomainStats } from '../services/api'
 import type { OverallAggregation, DomainAggregation } from '../types'
+import axios from 'axios'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -121,22 +124,31 @@ function SummaryCard({ title, value, icon, color }: SummaryCardProps) {
   )
 }
 
+interface SyncInfo {
+  current_utc_time: string
+  last_sync_time: string | null
+  last_sync_type: string | null
+}
+
 export default function PreDelivery() {
   const [activeTab, setActiveTab] = useState(0)
   const [overallData, setOverallData] = useState<OverallAggregation | null>(null)
   const [domainData, setDomainData] = useState<DomainAggregation[]>([])
+  const [syncInfo, setSyncInfo] = useState<SyncInfo | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [overall, domains] = await Promise.all([
+        const [overall, domains, sync] = await Promise.all([
           getOverallStats(),
-          getDomainStats()
+          getDomainStats(),
+          axios.get(`${import.meta.env.VITE_API_URL || ''}/api/sync-info`)
         ])
         setOverallData(overall)
         setDomainData(domains)
+        setSyncInfo(sync.data)
       } catch (error) {
         console.error('Failed to fetch pre-delivery summary data:', error)
       } finally {
@@ -144,26 +156,87 @@ export default function PreDelivery() {
       }
     }
     fetchData()
+    
+    // Update current time every second
+    const interval = setInterval(() => {
+      setSyncInfo(prev => prev ? {
+        ...prev,
+        current_utc_time: new Date().toISOString()
+      } : null)
+    }, 1000) // Update every second
+    
+    return () => clearInterval(interval)
   }, [])
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
   }
 
+  const formatTime = (isoString: string | null) => {
+    if (!isoString) return 'N/A'
+    const date = new Date(isoString)
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      timeZone: 'UTC'
+    })
+  }
+
+  const getRelativeTime = (isoString: string | null) => {
+    if (!isoString) return 'N/A'
+    const now = new Date()
+    const past = new Date(isoString)
+    const diffMs = now.getTime() - past.getTime()
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+    
+    if (diffHours > 0) {
+      return `Synced ${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+    } else if (diffMinutes > 0) {
+      return `Synced ${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`
+    } else {
+      return 'Synced just now'
+    }
+  }
+
   return (
     <Box>
-      {/* Description */}
-      <Box sx={{ mb: 3 }}>
+      {/* Description and Sync Info */}
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
         <Typography 
           variant="body2" 
           sx={{ 
             color: '#6B7280',
             fontSize: '0.875rem',
             lineHeight: 1.6,
+            flex: 1,
+            minWidth: '200px',
           }}
         >
           Comprehensive overview of delivery metrics and performance indicators
         </Typography>
+        
+        {/* Sync Information */}
+        {syncInfo && (
+          <Chip
+            icon={<AccessTimeIcon />}
+            label={`${formatTime(syncInfo.current_utc_time)} ${getRelativeTime(syncInfo.last_sync_time)}`}
+            sx={{
+              height: 'auto',
+              py: 1,
+              px: 2,
+              backgroundColor: '#F9FAFB',
+              border: '1px solid #E5E7EB',
+              fontSize: '0.875rem',
+              '& .MuiChip-icon': { 
+                color: '#6B7280',
+                marginLeft: 1,
+              },
+            }}
+          />
+        )}
       </Box>
 
       {/* Summary Cards */}

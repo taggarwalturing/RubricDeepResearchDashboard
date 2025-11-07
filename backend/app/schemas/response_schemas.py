@@ -25,6 +25,8 @@ class DomainAggregation(BaseModel):
     domain: Optional[str] = Field(None, description="Domain name")
     task_count: int = Field(..., description="Total unique tasks for this domain")
     average_task_score: Optional[float] = Field(None, description="Average task score across all tasks in this domain")
+    total_rework_count: int = Field(0, description="Total rework count across all tasks in this domain")
+    average_rework_count: float = Field(0.0, description="Average rework count per task in this domain")
     quality_dimensions: List[QualityDimensionStats] = Field(
         default_factory=list,
         description="Statistics by quality dimension"
@@ -39,6 +41,8 @@ class ReviewerAggregation(BaseModel):
     reviewer_email: Optional[str] = Field(None, description="Reviewer Turing email")
     task_count: int = Field(..., description="Total unique tasks for this reviewer")
     average_task_score: Optional[float] = Field(None, description="Average task score across all tasks by this reviewer")
+    total_rework_count: int = Field(0, description="Total rework count across all tasks reviewed by this reviewer")
+    average_rework_count: float = Field(0.0, description="Average rework count per task reviewed by this reviewer")
     quality_dimensions: List[QualityDimensionStats] = Field(
         default_factory=list,
         description="Statistics by quality dimension"
@@ -53,6 +57,8 @@ class TrainerLevelAggregation(BaseModel):
     trainer_email: Optional[str] = Field(None, description="Trainer Turing email")
     task_count: int = Field(..., description="Total unique tasks for this trainer")
     average_task_score: Optional[float] = Field(None, description="Average task score across all tasks by this trainer")
+    total_rework_count: int = Field(0, description="Total rework count across all tasks by this trainer")
+    average_rework_count: float = Field(0.0, description="Average rework count per task by this trainer")
     quality_dimensions: List[QualityDimensionStats] = Field(
         default_factory=list,
         description="Statistics by quality dimension"
@@ -68,6 +74,8 @@ class OverallAggregation(BaseModel):
     domain_count: int = Field(0, description="Total unique domains")
     delivered_tasks: int = Field(0, description="Total delivered tasks from S3 work items")
     delivered_files: int = Field(0, description="Total distinct JSON files delivered")
+    total_rework_count: int = Field(0, description="Total rework count across all tasks")
+    average_rework_count: float = Field(0.0, description="Average rework count per task")
     quality_dimensions: List[QualityDimensionStats] = Field(
         default_factory=list,
         description="Overall statistics by quality dimension"
@@ -97,6 +105,7 @@ class TaskLevelInfo(BaseModel):
     colab_link: Optional[str] = Field(None, description="Collaboration link for the task")
     updated_at: Optional[str] = Field(None, description="Task update date (ISO format)")
     week_number: Optional[int] = Field(None, description="Week number from project start date")
+    rework_count: Optional[int] = Field(None, description="Number of times this task went to rework")
     quality_dimensions: dict = Field(
         default_factory=dict,
         description="Quality dimensions for this task as a dict {dimension_name: score}"
