@@ -37,6 +37,7 @@ export interface TrainerLevelAggregation {
 
 export interface OverallAggregation {
   task_count: number
+  work_items_count?: number
   reviewer_count: number
   trainer_count: number
   domain_count: number

@@ -69,6 +69,7 @@ class OverallAggregation(BaseModel):
     """Schema for overall aggregation"""
     
     task_count: int = Field(..., description="Total unique tasks overall")
+    work_items_count: Optional[int] = Field(None, description="Total unique work items")
     reviewer_count: int = Field(0, description="Total unique reviewers")
     trainer_count: int = Field(0, description="Total unique trainers")
     domain_count: int = Field(0, description="Total unique domains")

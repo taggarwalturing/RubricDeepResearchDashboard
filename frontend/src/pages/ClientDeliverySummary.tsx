@@ -7,6 +7,12 @@ import {
   Card,
   CircularProgress,
   Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material'
 import {
   CheckCircle as CheckCircleIcon,
@@ -16,6 +22,7 @@ import {
   Star as StarIcon,
   People as PeopleIcon,
   Assignment as AssignmentIcon,
+  Inventory as InventoryIcon,
 } from '@mui/icons-material'
 import {
   ComposedChart,
@@ -58,6 +65,18 @@ interface QualityTimelineData {
 interface SankeyData {
   nodes: Array<{ id: string; nodeColor?: string }>
   links: Array<{ source: string; target: string; value: number }>
+}
+
+interface DateSummary {
+  delivery_date: string
+  total_delivered: number
+  with_client_status: number
+  approved_count: number
+}
+
+interface QualitySummary {
+  delivery_date: string
+  [key: string]: string | number  // Dynamic quality dimensions
 }
 
 interface SummaryCardProps {
@@ -134,6 +153,8 @@ export default function ClientDeliverySummary() {
   const [timelineData, setTimelineData] = useState<TimelineData[]>([])
   const [qualityTimelineData, setQualityTimelineData] = useState<QualityTimelineData[]>([])
   const [sankeyData, setSankeyData] = useState<SankeyData | null>(null)
+  const [dateSummary, setDateSummary] = useState<DateSummary[]>([])
+  const [qualitySummary, setQualitySummary] = useState<QualitySummary[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -141,16 +162,20 @@ export default function ClientDeliverySummary() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [summaryResponse, timelineResponse, qualityTimelineResponse, sankeyResponse] = await Promise.all([
+        const [summaryResponse, timelineResponse, qualityTimelineResponse, sankeyResponse, dateSummaryResponse, qualitySummaryResponse] = await Promise.all([
           axios.get(`${import.meta.env.VITE_API_URL || ''}/api/client-delivery-summary`),
           axios.get(`${import.meta.env.VITE_API_URL || ''}/api/client-delivery-timeline`),
           axios.get(`${import.meta.env.VITE_API_URL || ''}/api/client-delivery-quality-timeline`),
-          axios.get(`${import.meta.env.VITE_API_URL || ''}/api/client-delivery-sankey`)
+          axios.get(`${import.meta.env.VITE_API_URL || ''}/api/client-delivery-sankey`),
+          axios.get(`${import.meta.env.VITE_API_URL || ''}/api/client-delivery-date-summary`),
+          axios.get(`${import.meta.env.VITE_API_URL || ''}/api/client-delivery-quality-summary`)
         ])
         setData(summaryResponse.data)
         setTimelineData(timelineResponse.data)
         setQualityTimelineData(qualityTimelineResponse.data)
         setSankeyData(sankeyResponse.data)
+        setDateSummary(dateSummaryResponse.data)
+        setQualitySummary(qualitySummaryResponse.data)
       } catch (err: any) {
         console.error('Failed to fetch client delivery data:', err)
         setError(err.message || 'Failed to fetch data')
@@ -283,11 +308,12 @@ export default function ClientDeliverySummary() {
           ))}
         </Grid>
 
-        {/* Timeline Chart */}
-        {timelineData.length > 0 && (
+        {/* Delivery Date Summary Table */}
+        {dateSummary.length > 0 && (
           <Paper
             sx={{
               p: 3,
+              mb: 4,
               backgroundColor: '#FFFFFF',
               border: '1px solid #E5E7EB',
               borderRadius: 2,
@@ -301,108 +327,99 @@ export default function ClientDeliverySummary() {
                 mb: 3,
               }}
             >
-              Task Delivery Timeline
+              Delivery Date Summary
             </Typography>
-            <ResponsiveContainer width="100%" height={400}>
-              <ComposedChart data={timelineData} margin={{ top: 20, right: 60, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fill: '#6B7280', fontSize: 12 }}
-                  tickLine={{ stroke: '#E5E7EB' }}
-                />
-                <YAxis
-                  yAxisId="left"
-                  tick={{ fill: '#6B7280', fontSize: 12 }}
-                  tickLine={{ stroke: '#E5E7EB' }}
-                  label={{ value: 'Tasks', angle: -90, position: 'insideLeft', style: { fill: '#6B7280', fontSize: 12 } }}
-                />
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  domain={[0, 5]}
-                  tick={{ fill: '#8B5CF6', fontSize: 12 }}
-                  tickLine={{ stroke: '#8B5CF6' }}
-                  label={{ value: 'Rating', angle: 90, position: 'insideRight', style: { fill: '#8B5CF6', fontSize: 12 } }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                  }}
-                />
-                <Legend
-                  wrapperStyle={{
-                    paddingTop: '20px',
-                  }}
-                />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="rejected" 
-                  stackId="1"
-                  fill="#EF4444" 
-                  name="Rejected"
-                />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="pending" 
-                  stackId="1"
-                  fill="#F59E0B" 
-                  name="Pending"
-                />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="approved" 
-                  stackId="1"
-                  fill="#10B981" 
-                  name="Approved"
-                />
-                <Line
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="average_rating"
-                  stroke="#8B5CF6"
-                  strokeWidth={3}
-                  dot={{ fill: '#8B5CF6', r: 5 }}
-                  name="Avg Rating"
-                />
-              </ComposedChart>
-            </ResponsiveContainer>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: '#F9FAFB' }}>
+                    <TableCell sx={{ fontWeight: 700, color: '#1F2937', fontSize: '0.875rem' }}>
+                      Delivery Date
+                    </TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700, color: '#1F2937', fontSize: '0.875rem' }}>
+                      Total Delivered
+                    </TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700, color: '#1F2937', fontSize: '0.875rem' }}>
+                      Processed by Client
+                    </TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700, color: '#1F2937', fontSize: '0.875rem' }}>
+                      Approved Count
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {dateSummary.map((row, index) => (
+                    <TableRow
+                      key={row.delivery_date}
+                      sx={{
+                        '&:hover': { backgroundColor: '#F9FAFB' },
+                        borderBottom: index === dateSummary.length - 1 ? 'none' : '1px solid #E5E7EB',
+                      }}
+                    >
+                      <TableCell sx={{ fontSize: '0.875rem', color: '#1F2937', fontWeight: 600 }}>
+                        {row.delivery_date}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontSize: '0.875rem', color: '#000000', fontWeight: 700 }}>
+                        {row.total_delivered}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontSize: '0.875rem', color: '#000000', fontWeight: 700 }}>
+                        {row.with_client_status} ({row.total_delivered > 0 ? ((row.with_client_status / row.total_delivered) * 100).toFixed(1) : 0}%)
+                      </TableCell>
+                      <TableCell align="right">
+                        <Box
+                          component="span"
+                          sx={{
+                            px: 1.5,
+                            py: 0.5,
+                            backgroundColor: row.approved_count > 0 ? '#D1FAE5' : '#E5E7EB',
+                            color: row.approved_count > 0 ? '#065F46' : '#6B7280',
+                            borderRadius: 1,
+                            fontSize: '0.875rem',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {row.approved_count} ({row.total_delivered > 0 ? ((row.approved_count / row.total_delivered) * 100).toFixed(1) : 0}%)
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Paper>
         )}
 
-        {/* Quality Dimensions Timeline Chart */}
-        {qualityTimelineData.length > 0 && (() => {
+        {/* Quality Dimensions Summary Table */}
+        {qualitySummary.length > 0 && (() => {
           // Get all unique quality dimensions from the data
-          const dimensions = new Set<string>()
-          qualityTimelineData.forEach(item => {
+          const dimensionSet = new Set<string>()
+          qualitySummary.forEach(item => {
             Object.keys(item).forEach(key => {
-              if (key !== 'date') {
-                dimensions.add(key)
+              if (key !== 'delivery_date') {
+                dimensionSet.add(key)
               }
             })
           })
-          const dimensionList = Array.from(dimensions)
           
-          // Color palette for quality dimensions
-          const colors = [
-            '#3B82F6', // Blue
-            '#10B981', // Green
-            '#F59E0B', // Amber
-            '#EF4444', // Red
-            '#8B5CF6', // Purple
-            '#EC4899', // Pink
-            '#14B8A6', // Teal
-            '#F97316', // Orange
+          // Sort dimensions with Turing Score first, then Turing Overall QD Score, then alphabetically
+          const dimensionsArray = Array.from(dimensionSet)
+          const turingScore = dimensionsArray.find(d => d === 'Turing Score')
+          const turingQDScore = dimensionsArray.find(d => d === 'Turing Overall QD Score')
+          const otherDimensions = dimensionsArray
+            .filter(d => d !== 'Turing Score' && d !== 'Turing Overall QD Score')
+            .sort()
+          
+          const dimensions = [
+            ...(turingScore ? [turingScore] : []),
+            ...(turingQDScore ? [turingQDScore] : []),
+            ...otherDimensions
           ]
-
+          
           return (
             <Paper
               sx={{
                 p: 3,
-                mt: 3,
+                mt: 4,
                 backgroundColor: '#FFFFFF',
                 border: '1px solid #E5E7EB',
                 borderRadius: 2,
@@ -416,59 +433,116 @@ export default function ClientDeliverySummary() {
                   mb: 3,
                 }}
               >
-                Quality Dimensions Over Time
+                Quality Dimensions Average Ratings by Date
               </Typography>
-              <ResponsiveContainer width="100%" height={400}>
-                <ComposedChart data={qualityTimelineData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fill: '#6B7280', fontSize: 12 }}
-                    tickLine={{ stroke: '#E5E7EB' }}
-                  />
-                  <YAxis
-                    domain={[0, 5]}
-                    tick={{ fill: '#6B7280', fontSize: 12 }}
-                    tickLine={{ stroke: '#E5E7EB' }}
-                    label={{ value: 'Average Score', angle: -90, position: 'insideLeft', style: { fill: '#6B7280', fontSize: 12 } }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#FFFFFF',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                    }}
-                  />
-                  <Legend
-                    wrapperStyle={{
-                      paddingTop: '20px',
-                    }}
-                  />
-                  {dimensionList.map((dimension, index) => (
-                    <Line
-                      key={dimension}
-                      type="monotone"
-                      dataKey={dimension}
-                      stroke={colors[index % colors.length]}
-                      strokeWidth={2}
-                      dot={{ fill: colors[index % colors.length], r: 4 }}
-                      name={dimension}
-                      connectNulls
-                    />
-                  ))}
-                </ComposedChart>
-              </ResponsiveContainer>
+              <TableContainer sx={{ maxHeight: 600, overflowX: 'auto', overflowY: 'auto' }}>
+                <Table stickyHeader sx={{ minWidth: 1200 }}>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#F9FAFB' }}>
+                      <TableCell 
+                        sx={{ 
+                          fontWeight: 700, 
+                          color: '#1F2937', 
+                          fontSize: '0.875rem',
+                          minWidth: 120,
+                          position: 'sticky',
+                          left: 0,
+                          backgroundColor: '#F9FAFB',
+                          zIndex: 3
+                        }}
+                      >
+                        Delivery Date
+                      </TableCell>
+                      {dimensions.map((dimension) => (
+                        <TableCell 
+                          key={dimension} 
+                          align="right" 
+                          sx={{ 
+                            fontWeight: 700, 
+                            color: '#1F2937', 
+                            fontSize: '0.875rem',
+                            minWidth: 180,
+                            whiteSpace: 'nowrap',
+                            paddingX: 3
+                          }}
+                        >
+                          {dimension}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {qualitySummary.map((row, index) => (
+                      <TableRow
+                        key={row.delivery_date}
+                        sx={{
+                          '&:hover': { backgroundColor: '#F9FAFB' },
+                          borderBottom: index === qualitySummary.length - 1 ? 'none' : '1px solid #E5E7EB',
+                        }}
+                      >
+                        <TableCell 
+                          sx={{ 
+                            fontSize: '0.875rem', 
+                            color: '#1F2937', 
+                            fontWeight: 600,
+                            position: 'sticky',
+                            left: 0,
+                            backgroundColor: '#FFFFFF',
+                            zIndex: 2,
+                            minWidth: 120
+                          }}
+                        >
+                          {row.delivery_date}
+                        </TableCell>
+                        {dimensions.map((dimension) => {
+                          const score = typeof row[dimension] === 'number' ? row[dimension] as number : 0
+                          return (
+                            <TableCell 
+                              key={dimension} 
+                              align="right"
+                              sx={{ 
+                                minWidth: 180,
+                                paddingX: 3
+                              }}
+                            >
+                              <Box
+                                component="span"
+                                sx={{
+                                  px: 2,
+                                  py: 0.75,
+                                  backgroundColor: score >= 4.5 ? '#D1FAE5' : 
+                                                 score >= 4.0 ? '#FEF3C7' : 
+                                                 score >= 3.0 ? '#FED7AA' : '#FEE2E2',
+                                  color: score >= 4.5 ? '#065F46' : 
+                                         score >= 4.0 ? '#92400E' : 
+                                         score >= 3.0 ? '#9A3412' : '#991B1B',
+                                  borderRadius: 1,
+                                  fontSize: '0.875rem',
+                                  fontWeight: 700,
+                                  display: 'inline-block',
+                                  minWidth: 60
+                                }}
+                              >
+                                {score > 0 ? score.toFixed(2) : '-'}
+                              </Box>
+                            </TableCell>
+                          )
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Paper>
           )
         })()}
 
-        {/* Sankey Diagram - Domain to Status Flow */}
-        {sankeyData && sankeyData.nodes.length > 0 && (
+        {/* Sankey Diagram: Total → Date → Domain → Status Flow */}
+        {sankeyData && sankeyData.nodes && sankeyData.nodes.length > 0 && (
           <Paper
             sx={{
               p: 3,
-              mt: 3,
+              mt: 4,
               backgroundColor: '#FFFFFF',
               border: '1px solid #E5E7EB',
               borderRadius: 2,
@@ -482,65 +556,40 @@ export default function ClientDeliverySummary() {
                 mb: 3,
               }}
             >
-              Domain Distribution by Status
+              Delivery Flow: Total → Date → Domain → Status
             </Typography>
-            <Box sx={{ height: 500 }}>
+            <Box sx={{ height: 600 }}>
               <ResponsiveSankey
                 data={sankeyData}
-                margin={{ top: 20, right: 180, bottom: 20, left: 180 }}
+                margin={{ top: 20, right: 160, bottom: 20, left: 160 }}
                 align="justify"
                 colors={(node: any) => node.nodeColor || '#3B82F6'}
                 nodeOpacity={1}
-                nodeHoverOthersOpacity={0.35}
                 nodeThickness={18}
                 nodeSpacing={24}
                 nodeBorderWidth={0}
-                nodeBorderColor={{
-                  from: 'color',
-                  modifiers: [['darker', 0.8]]
-                }}
-                nodeBorderRadius={3}
                 linkOpacity={0.5}
-                linkHoverOthersOpacity={0.1}
+                linkHoverOpacity={0.8}
                 linkContract={3}
                 enableLinkGradient={true}
                 label={(node: any) => {
-                  const id = node.id
-                  // Handle different node types
-                  if (id.startsWith('date_')) {
-                    return id.replace(/^date_/, '')
-                  } else if (id.startsWith('domain_')) {
-                    // Extract domain name from "domain_YYYY-MM-DD_DomainName"
-                    // Remove "domain_" prefix (7 chars), then skip date (10 chars) and underscore (1 char)
-                    const afterPrefix = id.substring(7) // Remove "domain_"
-                    const domainName = afterPrefix.substring(11) // Skip "YYYY-MM-DD_"
-                    return domainName
+                  // Extract readable labels from node IDs
+                  const nodeId = node.id as string
+                  if (nodeId.startsWith('date_')) {
+                    return nodeId.replace('date_', '')
+                  } else if (nodeId.startsWith('domain_')) {
+                    // Extract domain name from "domain_DOMAINNAME"
+                    return nodeId.replace('domain_', '')
                   }
-                  // Return status as is (APPROVED, REJECTED, PENDING)
-                  return id
+                  return nodeId
                 }}
                 labelPosition="outside"
                 labelOrientation="horizontal"
                 labelPadding={16}
                 labelTextColor="#1F2937"
                 theme={{
-                  labels: {
-                    text: {
-                      fontSize: 12,
-                      fontWeight: 600,
-                      fill: '#1F2937'
-                    }
-                  },
-                  tooltip: {
-                    container: {
-                      background: '#FFFFFF',
-                      color: '#1F2937',
-                      fontSize: 12,
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                      border: '1px solid #E5E7EB'
-                    }
-                  }
+                  fontSize: 12,
+                  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
                 }}
               />
             </Box>

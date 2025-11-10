@@ -38,6 +38,7 @@ import {
   Speed as SpeedIcon,
   LocalShipping as DeliveryIcon,
   InsertDriveFile as FileIcon,
+  Inventory as InventoryIcon,
 } from '@mui/icons-material'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ErrorDisplay from '../components/ErrorDisplay'
@@ -359,6 +360,16 @@ export default function Dashboard() {
       tooltip: 'Total number of work items delivered from S3 JSON files. This represents tasks that have been uploaded and are ready for processing.',
       trend: null,
       icon: DeliveryIcon,
+      color: '#06B6D4',
+      bgColor: '#CFFAFE',
+    },
+    {
+      title: 'Work Items',
+      value: overallData.work_items_count?.toLocaleString() || '0',
+      subtitle: 'From S3',
+      tooltip: 'Total number of distinct work items from the work_item table. Each work item represents a unit of work that may correspond to multiple tasks.',
+      trend: null,
+      icon: InventoryIcon,
       color: '#06B6D4',
       bgColor: '#CFFAFE',
     },

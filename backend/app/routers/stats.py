@@ -679,30 +679,43 @@ async def get_client_delivery_summary() -> Dict[str, Any]:
         db_service = get_db_service()
         
         with db_service.get_session() as session:
-            # Total tasks delivered (distinct count of work_item_id)
+            # Total tasks delivered (distinct count of task_id)
             total_delivered = session.query(
-                func.count(distinct(WorkItem.work_item_id))
+                func.count(distinct(Task.id))
+            ).select_from(WorkItem).join(
+                Task, WorkItem.colab_link == Task.colab_link
             ).scalar() or 0
             
             # Total tasks accepted by client (client_status = 'Approved' or 'APPROVED')
             total_accepted = session.query(
-                func.count(distinct(WorkItem.work_item_id))
+                func.count(distinct(Task.id))
+            ).select_from(WorkItem).join(
+                Task, WorkItem.colab_link == Task.colab_link
             ).filter(
                 func.upper(WorkItem.client_status).in_(['APPROVED', 'ACCEPTED'])
             ).scalar() or 0
             
             # Total tasks rejected by client (client_status = 'Rejected' or 'REJECTED')
             total_rejected = session.query(
-                func.count(distinct(WorkItem.work_item_id))
+                func.count(distinct(Task.id))
+            ).select_from(WorkItem).join(
+                Task, WorkItem.colab_link == Task.colab_link
             ).filter(
                 func.upper(WorkItem.client_status) == 'REJECTED'
             ).scalar() or 0
             
             # Total tasks pending (not approved or rejected)
             total_pending = session.query(
-                func.count(distinct(WorkItem.work_item_id))
+                func.count(distinct(Task.id))
+            ).select_from(WorkItem).join(
+                Task, WorkItem.colab_link == Task.colab_link
             ).filter(
                 func.upper(WorkItem.client_status).notin_(['APPROVED', 'ACCEPTED', 'REJECTED'])
+            ).scalar() or 0
+            
+            # Total work items delivered (distinct count of work_item_id)
+            total_work_items = session.query(
+                func.count(distinct(WorkItem.work_item_id))
             ).scalar() or 0
             
             # Total files delivered (distinct json_filename)
@@ -736,6 +749,7 @@ async def get_client_delivery_summary() -> Dict[str, Any]:
             
             return {
                 'total_tasks_delivered': total_delivered,
+                'total_work_items_delivered': total_work_items,
                 'total_tasks_rejected': total_rejected,
                 'total_tasks_accepted': total_accepted,
                 'total_tasks_pending': total_pending,
@@ -923,14 +937,14 @@ async def get_client_delivery_quality_timeline() -> List[Dict[str, Any]]:
 )
 async def get_client_delivery_sankey() -> Dict[str, Any]:
     """
-    Get Sankey diagram data showing flow from domains to delivery status
+    Get Sankey diagram data showing flow: Total Delivered → Date → Domain → Status
     
     Returns nodes and links for Sankey visualization
     """
     try:
         from sqlalchemy import func
         from app.services.db_service import get_db_service
-        from app.models.db_models import Task, WorkItem
+        from app.models.db_models import WorkItem, Task
         
         db_service = get_db_service()
         
@@ -942,10 +956,8 @@ async def get_client_delivery_sankey() -> Dict[str, Any]:
                 WorkItem.client_status.label('status'),
                 func.count(func.distinct(WorkItem.work_item_id)).label('count')
             ).join(
-                WorkItem, Task.colab_link == WorkItem.colab_link
+                Task, WorkItem.colab_link == Task.colab_link
             ).filter(
-                Task.domain.isnot(None),
-                WorkItem.client_status.isnot(None),
                 WorkItem.delivery_date.isnot(None)
             ).group_by(
                 func.date(WorkItem.delivery_date),
@@ -953,23 +965,30 @@ async def get_client_delivery_sankey() -> Dict[str, Any]:
                 WorkItem.client_status
             ).all()
             
-            # Build nodes and links for 3-level Sankey
+            # Build nodes and links for 4-level Sankey: Total → Date → Domain → Status
             nodes = []
             links = []
             
-            # Collect unique dates, domains, and statuses
-            dates = set()
-            domains = set()
-            statuses = set()
+            # Level 1: Single "Total Delivered" node
+            total_node_id = "Total Delivered"
+            nodes.append({
+                "id": total_node_id,
+                "nodeColor": "hsl(220, 70%, 50%)"  # Blue
+            })
             
-            # Track date->domain and domain->status connections
+            # Track flows at each level
+            date_totals = {}
             date_domain_map = {}
             domain_status_map = {}
+            statuses_seen = set()
+            domains_seen = set()
             
             for row in date_domain_status:
                 date_str = row.date.strftime('%Y-%m-%d') if row.date else None
-                domain = row.domain
+                domain = row.domain if row.domain else 'Unknown'
                 status = row.status.upper() if row.status else 'UNKNOWN'
+                
+                # Normalize status
                 if status in ['APPROVED', 'ACCEPTED']:
                     status = 'APPROVED'
                 elif status == 'REJECTED':
@@ -980,71 +999,81 @@ async def get_client_delivery_sankey() -> Dict[str, Any]:
                 count = int(row.count) if row.count else 0
                 
                 if date_str and count > 0:
-                    dates.add(date_str)
-                    domains.add(domain)
-                    statuses.add(status)
+                    # Track total per date
+                    if date_str not in date_totals:
+                        date_totals[date_str] = 0
+                    date_totals[date_str] += count
                     
-                    # Track date -> domain
+                    # Track date->domain flow
                     date_domain_key = f"{date_str}|{domain}"
                     if date_domain_key not in date_domain_map:
                         date_domain_map[date_domain_key] = 0
                     date_domain_map[date_domain_key] += count
                     
-                    # Track domain -> status (per date to avoid conflicts)
-                    domain_status_key = f"{date_str}|{domain}|{status}"
+                    # Track domain->status flow (domain is shared across dates)
+                    domain_status_key = f"{domain}|{status}"
                     if domain_status_key not in domain_status_map:
                         domain_status_map[domain_status_key] = 0
                     domain_status_map[domain_status_key] += count
+                    
+                    statuses_seen.add(status)
+                    domains_seen.add(domain)
             
-            # Collect unique node IDs from the maps
-            date_nodes = set()
-            domain_nodes = set()
-            
-            for key in date_domain_map.keys():
-                date_str, domain = key.split('|')
-                date_nodes.add(date_str)
-                domain_nodes.add(f"{date_str}|{domain}")
-            
-            # Create nodes - Level 1: Dates (Purple)
-            for date in sorted(date_nodes):
+            # Level 2: Date nodes (Purple)
+            for date_str in sorted(date_totals.keys(), reverse=True):
+                date_node_id = f"date_{date_str}"
                 nodes.append({
-                    "id": f"date_{date}",
-                    "nodeColor": "hsl(270, 70%, 50%)"
+                    "id": date_node_id,
+                    "nodeColor": "hsl(270, 70%, 50%)"  # Purple
+                })
+                
+                # Create link from Total to Date
+                links.append({
+                    "source": total_node_id,
+                    "target": date_node_id,
+                    "value": date_totals[date_str]
                 })
             
-            # Create nodes - Level 2: Domains (Blue)
-            for node_id in sorted(domain_nodes):
-                date_str, domain = node_id.split('|')
+            # Level 3: Domain nodes (Blue shades - shared across dates)
+            domain_colors = ['hsl(210, 70%, 50%)', 'hsl(200, 70%, 50%)', 'hsl(190, 70%, 50%)', 'hsl(180, 70%, 50%)', 'hsl(195, 70%, 50%)']
+            domain_color_map = {}
+            
+            for i, domain in enumerate(sorted(domains_seen)):
+                domain_node_id = f"domain_{domain}"
                 nodes.append({
-                    "id": f"domain_{date_str}_{domain}",
-                    "nodeColor": "hsl(210, 70%, 50%)"
+                    "id": domain_node_id,
+                    "nodeColor": domain_colors[i % len(domain_colors)]
                 })
+                domain_color_map[domain] = domain_colors[i % len(domain_colors)]
             
-            # Create nodes - Level 3: Status (Green/Red/Amber)
-            for status in ['APPROVED', 'REJECTED', 'PENDING']:
-                if status in statuses:
-                    color = "hsl(142, 70%, 50%)" if status == 'APPROVED' else \
-                            "hsl(0, 70%, 50%)" if status == 'REJECTED' else \
-                            "hsl(45, 70%, 50%)"
-                    nodes.append({
-                        "id": status,
-                        "nodeColor": color
-                    })
-            
-            # Create links - Date to Domain
-            for key, value in date_domain_map.items():
+            # Create links from Date to Domain
+            for key in sorted(date_domain_map.keys()):
                 date_str, domain = key.split('|')
                 links.append({
                     "source": f"date_{date_str}",
-                    "target": f"domain_{date_str}_{domain}",
-                    "value": value
+                    "target": f"domain_{domain}",
+                    "value": date_domain_map[key]
                 })
             
-            # Create links - Domain to Status
+            # Level 4: Status nodes (Green/Red/Amber)
+            status_colors = {
+                'APPROVED': "hsl(142, 70%, 50%)",  # Green
+                'REJECTED': "hsl(0, 70%, 50%)",    # Red
+                'PENDING': "hsl(45, 70%, 50%)"     # Amber
+            }
+            
+            for status in ['APPROVED', 'REJECTED', 'PENDING']:
+                if status in statuses_seen:
+                    nodes.append({
+                        "id": status,
+                        "nodeColor": status_colors[status]
+                    })
+            
+            # Create links from Domain to Status
             for key, value in domain_status_map.items():
-                date_str, domain, status = key.split('|')
+                domain, status = key.split('|')
                 links.append({
-                    "source": f"domain_{date_str}_{domain}",
+                    "source": f"domain_{domain}",
                     "target": status,
                     "value": value
                 })
@@ -1059,6 +1088,173 @@ async def get_client_delivery_sankey() -> Dict[str, Any]:
         raise HTTPException(
             status_code=500,
             detail=f"Error retrieving Sankey data: {str(e)}"
+        )
+
+
+@router.get(
+    "/client-delivery-date-summary",
+    response_model=List[Dict[str, Any]],
+    summary="Get delivery date summary statistics",
+    description="Get aggregated statistics by delivery date"
+)
+async def get_client_delivery_date_summary() -> List[Dict[str, Any]]:
+    """
+    Get summary statistics grouped by delivery date
+    
+    Returns:
+    - Delivery date
+    - Total tasks delivered (distinct work_item_id)
+    - Tasks with client status (approved + rejected)
+    - Rejected tasks count
+    """
+    try:
+        from sqlalchemy import func, case
+        from app.services.db_service import get_db_service
+        from app.models.db_models import WorkItem
+        
+        db_service = get_db_service()
+        
+        with db_service.get_session() as session:
+            date_summary = session.query(
+                func.date(WorkItem.delivery_date).label('delivery_date'),
+                func.count(func.distinct(WorkItem.work_item_id)).label('total_delivered'),
+                func.count(func.distinct(
+                    case(
+                        (func.upper(WorkItem.client_status).in_(['APPROVED', 'ACCEPTED', 'REJECTED']), WorkItem.work_item_id),
+                        else_=None
+                    )
+                )).label('with_client_status'),
+                func.count(func.distinct(
+                    case(
+                        (func.upper(WorkItem.client_status).in_(['APPROVED', 'ACCEPTED']), WorkItem.work_item_id),
+                        else_=None
+                    )
+                )).label('approved_count')
+            ).filter(
+                WorkItem.delivery_date.isnot(None)
+            ).group_by(
+                func.date(WorkItem.delivery_date)
+            ).order_by(
+                func.date(WorkItem.delivery_date).desc()
+            ).all()
+            
+            result = []
+            for row in date_summary:
+                result.append({
+                    'delivery_date': row.delivery_date.strftime('%Y-%m-%d') if row.delivery_date else None,
+                    'total_delivered': int(row.total_delivered) if row.total_delivered else 0,
+                    'with_client_status': int(row.with_client_status) if row.with_client_status else 0,
+                    'approved_count': int(row.approved_count) if row.approved_count else 0
+                })
+            
+            return result
+            
+    except Exception as e:
+        logger.error(f"Error getting date summary: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving date summary data: {str(e)}"
+        )
+
+
+@router.get(
+    "/client-delivery-quality-summary",
+    response_model=List[Dict[str, Any]],
+    summary="Get quality dimension average ratings by delivery date",
+    description="Get average ratings for each quality dimension grouped by delivery date"
+)
+async def get_client_delivery_quality_summary() -> List[Dict[str, Any]]:
+    """
+    Get average ratings for quality dimensions grouped by delivery date
+    
+    Returns list of dates with average scores for each quality dimension
+    """
+    try:
+        from sqlalchemy import func
+        from app.services.db_service import get_db_service
+        from app.models.db_models import WorkItem, Task, ReviewDetail
+        
+        db_service = get_db_service()
+        
+        with db_service.get_session() as session:
+            # Get quality dimension scores grouped by date and dimension
+            quality_by_date = session.query(
+                func.date(WorkItem.delivery_date).label('date'),
+                ReviewDetail.name.label('dimension_name'),
+                func.avg(ReviewDetail.score).label('average_score')
+            ).join(
+                Task, ReviewDetail.conversation_id == Task.id
+            ).join(
+                WorkItem, Task.colab_link == WorkItem.colab_link
+            ).filter(
+                WorkItem.delivery_date.isnot(None),
+                ReviewDetail.name.isnot(None),
+                ReviewDetail.score.isnot(None)
+            ).group_by(
+                func.date(WorkItem.delivery_date),
+                ReviewDetail.name
+            ).order_by(
+                func.date(WorkItem.delivery_date).desc()
+            ).all()
+            
+            # Get overall task scores by date
+            overall_scores = session.query(
+                func.date(WorkItem.delivery_date).label('date'),
+                func.avg(ReviewDetail.task_score).label('overall_score')
+            ).join(
+                Task, ReviewDetail.conversation_id == Task.id
+            ).join(
+                WorkItem, Task.colab_link == WorkItem.colab_link
+            ).filter(
+                WorkItem.delivery_date.isnot(None),
+                ReviewDetail.task_score.isnot(None)
+            ).group_by(
+                func.date(WorkItem.delivery_date)
+            ).all()
+            
+            # Create overall scores map
+            overall_map = {}
+            for row in overall_scores:
+                date_str = row.date.strftime('%Y-%m-%d') if row.date else None
+                overall_map[date_str] = round(float(row.overall_score), 2) if row.overall_score else 0.0
+            
+            # Transform to date-centric format with dimensions as columns
+            date_map = {}
+            dimension_scores_by_date = {}  # Track all dimension scores per date for QD average
+            
+            for row in quality_by_date:
+                date_str = row.date.strftime('%Y-%m-%d') if row.date else None
+                if date_str not in date_map:
+                    date_map[date_str] = {
+                        'delivery_date': date_str,
+                        'Turing Score': overall_map.get(date_str, 0.0)
+                    }
+                    dimension_scores_by_date[date_str] = []
+                
+                dimension = row.dimension_name if row.dimension_name else 'Unknown'
+                score = round(float(row.average_score), 2) if row.average_score else 0.0
+                date_map[date_str][dimension] = score
+                dimension_scores_by_date[date_str].append(score)
+            
+            # Calculate Turing Overall QD Score (average of all dimension averages)
+            for date_str in date_map.keys():
+                scores = dimension_scores_by_date[date_str]
+                if scores:
+                    qd_average = sum(scores) / len(scores)
+                    date_map[date_str]['Turing Overall QD Score'] = round(qd_average, 2)
+                else:
+                    date_map[date_str]['Turing Overall QD Score'] = 0.0
+            
+            # Convert to list sorted by date (descending)
+            result = [date_map[date] for date in sorted(date_map.keys(), reverse=True)]
+            
+            return result
+            
+    except Exception as e:
+        logger.error(f"Error getting quality summary: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving quality summary data: {str(e)}"
         )
 
 

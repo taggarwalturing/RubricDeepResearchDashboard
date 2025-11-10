@@ -191,7 +191,7 @@ export default function ClientDelivery() {
         </Box>
       ) : overallData && (
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={2.4}>
+          <Grid item xs={12} sm={6} md={2}>
             <SummaryCard
               title="Total Tasks"
               value={overallData.task_count.toLocaleString()}
@@ -199,7 +199,15 @@ export default function ClientDelivery() {
               color="#6B7280"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={2.4}>
+          <Grid item xs={12} sm={6} md={2}>
+            <SummaryCard
+              title="Work Items"
+              value={overallData.work_items_count?.toLocaleString() || '0'}
+              icon={<DeliveryIcon />}
+              color="#06B6D4"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
             <SummaryCard
               title="Total Trainers"
               value={overallData.trainer_count.toLocaleString()}
@@ -207,7 +215,7 @@ export default function ClientDelivery() {
               color="#3B82F6"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={2.4}>
+          <Grid item xs={12} sm={6} md={2}>
             <SummaryCard
               title="Total Reviewers"
               value={overallData.reviewer_count.toLocaleString()}
@@ -215,7 +223,7 @@ export default function ClientDelivery() {
               color="#8B5CF6"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={2.4}>
+          <Grid item xs={12} sm={6} md={2}>
             <SummaryCard
               title="Total Domains"
               value={overallData.domain_count.toLocaleString()}
@@ -223,7 +231,7 @@ export default function ClientDelivery() {
               color="#f39c12"
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={2.4}>
+          <Grid item xs={12} sm={6} md={2}>
             <SummaryCard
               title="Quality Dimensions"
               value={overallData.quality_dimensions_count?.toLocaleString() || '0'}

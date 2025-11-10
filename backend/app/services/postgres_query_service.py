@@ -328,8 +328,9 @@ class PostgresQueryService:
                 from app.models.db_models import WorkItem
                 from sqlalchemy import func, distinct
                 
-                delivered_tasks = session.query(func.count(WorkItem.work_item_id)).scalar() or 0
+                delivered_tasks = session.query(func.count(distinct(WorkItem.task_id))).scalar() or 0
                 delivered_files = session.query(func.count(distinct(WorkItem.json_filename))).scalar() or 0
+                work_items_count = session.query(func.count(distinct(WorkItem.work_item_id))).scalar() or 0
                 
                 overall_data = aggregated[0]
                 overall_data['reviewer_count'] = len(unique_reviewers)
@@ -337,6 +338,7 @@ class PostgresQueryService:
                 overall_data['domain_count'] = len(unique_domains)
                 overall_data['delivered_tasks'] = delivered_tasks
                 overall_data['delivered_files'] = delivered_files
+                overall_data['work_items_count'] = work_items_count
                 
                 return overall_data
         except Exception as e:
@@ -644,9 +646,24 @@ class PostgresQueryService:
                 
                 task_results = task_query.all()
                 
+                # Get distinct work_item_id count
+                work_item_query = session.query(
+                    func.count(func.distinct(WorkItem.work_item_id))
+                ).select_from(WorkItem).join(
+                    Task, WorkItem.colab_link == Task.colab_link
+                ).filter(
+                    Task.is_delivered == 'True'
+                )
+                
+                if filters and filters.get('domain'):
+                    work_item_query = work_item_query.filter(Task.domain == filters['domain'])
+                
+                work_items_count = work_item_query.scalar() or 0
+                
                 if not task_results:
                     return {
                         'task_count': 0,
+                        'work_items_count': work_items_count,
                         'reviewer_count': 0,
                         'trainer_count': 0,
                         'domain_count': 0,
@@ -710,6 +727,7 @@ class PostgresQueryService:
                 
                 return {
                     'task_count': len(task_results),  # Count of distinct work_item.task_id
+                    'work_items_count': work_items_count,  # Count of distinct work_item_id
                     'reviewer_count': reviewer_count,
                     'trainer_count': len(unique_trainers),
                     'domain_count': len(unique_domains),
