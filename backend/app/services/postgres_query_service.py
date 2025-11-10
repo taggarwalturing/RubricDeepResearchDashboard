@@ -3,9 +3,10 @@ PostgreSQL query service for dashboard statistics
 Queries the materialized review_detail table
 """
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Set
 from collections import defaultdict
 from sqlalchemy import func
+from google.cloud import bigquery
 
 from app.config import get_settings
 from app.services.db_service import get_db_service
@@ -21,6 +22,50 @@ class PostgresQueryService:
         """Initialize PostgreSQL query service"""
         self.settings = get_settings()
         self.db_service = get_db_service()
+        self._allowed_quality_dimensions_cache: Optional[Set[str]] = None
+    
+    def _get_allowed_quality_dimensions(self, force_refresh: bool = False) -> Set[str]:
+        """
+        Fetch allowed quality dimensions for project_id 254 from BigQuery.
+        Results are cached to avoid repeated queries.
+        
+        Args:
+            force_refresh: If True, bypass cache and fetch fresh data
+        
+        Returns:
+            Set of quality dimension names that are enabled for the project
+        """
+        if not force_refresh and self._allowed_quality_dimensions_cache is not None:
+            return self._allowed_quality_dimensions_cache
+        
+        try:
+            # Initialize BigQuery client
+            client = bigquery.Client(project=self.settings.gcp_project_id)
+            
+            query = f"""
+            SELECT DISTINCT name 
+            FROM `turing-gpt.prod_labeling_tool_z.project_quality_dimension` 
+            WHERE project_id = {self.settings.project_id_filter} AND is_enabled = 1
+            """
+            
+            results = client.query(query).result()
+            
+            # Store in cache
+            self._allowed_quality_dimensions_cache = {row.name for row in results if row.name}
+            
+            logger.info(f"Loaded {len(self._allowed_quality_dimensions_cache)} enabled quality dimensions for project 254")
+            
+            return self._allowed_quality_dimensions_cache
+            
+        except Exception as e:
+            logger.error(f"Error fetching allowed quality dimensions: {e}")
+            # Return empty set on error to avoid breaking the application
+            return set()
+    
+    def refresh_quality_dimensions_cache(self) -> None:
+        """Force refresh the quality dimensions cache from BigQuery"""
+        self._allowed_quality_dimensions_cache = None
+        self._get_allowed_quality_dimensions(force_refresh=True)
     
     def _get_contributor_map(self) -> Dict[int, Dict[str, str]]:
         """Get contributor ID to name, email, and status mapping"""
@@ -88,7 +133,9 @@ class PostgresQueryService:
                 group_value = 'overall'
             
             name = row.name
-            if name:  # Only process rows with a quality dimension name
+            # Filter for Pre-Delivery: Only process allowed quality dimensions for project 254
+            allowed_dimensions = self._get_allowed_quality_dimensions()
+            if name and name in allowed_dimensions:
                 conversation_id = row.conversation_id
                 score = row.score
                 task_score = getattr(row, 'task_score', None)
@@ -190,7 +237,9 @@ class PostgresQueryService:
                 group_value = 'overall'
             
             name = row.name
-            if name:  # Only process rows with a quality dimension name
+            # Filter for Post-Delivery: Only process allowed quality dimensions for project 254
+            allowed_dimensions = self._get_allowed_quality_dimensions()
+            if name and name in allowed_dimensions:
                 task_id = row.task_id  # Use work_item.task_id
                 score = row.score
                 task_score = getattr(row, 'task_score', None)
@@ -721,9 +770,12 @@ class PostgresQueryService:
                 if filters and filters.get('domain'):
                     qd_query = qd_query.filter(ReviewDetail.domain == filters['domain'])
                 
-                # Get distinct names and count them
+                # Get distinct names and count them (filtered by allowed dimensions)
                 distinct_qd_names = qd_query.all()
-                quality_dimensions_count = len(distinct_qd_names)
+                allowed_dimensions = self._get_allowed_quality_dimensions()
+                # Filter to only count allowed quality dimensions
+                filtered_qd_names = [row.name for row in distinct_qd_names if row.name in allowed_dimensions]
+                quality_dimensions_count = len(filtered_qd_names)
                 
                 return {
                     'task_count': len(task_results),  # Count of distinct work_item.task_id

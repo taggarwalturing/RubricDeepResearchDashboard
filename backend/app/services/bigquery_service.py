@@ -93,7 +93,7 @@ class BigQueryService:
                         r.conversation_id AS r_id,
                         bt.task_id AS delivered_id,
                         c.colab_link AS RLHF_Link,
-                        CASE WHEN r.conversation_id = bt.task_id THEN "True" ELSE "False" END AS is_delivered,
+                        "False" AS is_delivered,
                         r.status,
                         r.score AS task_score,
                         DATE(r.updated_at) AS updated_at,

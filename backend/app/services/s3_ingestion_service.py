@@ -352,6 +352,15 @@ class S3IngestionService:
                         logger.error(error_msg)
                         errors.append(error_msg)
             
+            # Update is_delivered status in Task table based on newly synced work_items
+            try:
+                from app.services.data_sync_service import get_data_sync_service
+                data_sync_service = get_data_sync_service()
+                data_sync_service._update_is_delivered_status()
+            except Exception as e:
+                logger.error(f"Error updating is_delivered status: {e}")
+                errors.append(f"Failed to update is_delivered status: {str(e)}")
+            
             # Update sync log
             end_time = datetime.now()
             sync_log = session.query(DataSyncLog).filter_by(id=sync_log_id).first()

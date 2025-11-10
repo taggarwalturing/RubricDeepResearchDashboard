@@ -371,14 +371,14 @@ export default function ClientDeliverySummary() {
                           sx={{
                             px: 1.5,
                             py: 0.5,
-                            backgroundColor: row.approved_count > 0 ? '#D1FAE5' : '#E5E7EB',
-                            color: row.approved_count > 0 ? '#065F46' : '#6B7280',
+                            backgroundColor: row.with_client_status === 0 ? '#F3F4F6' : row.approved_count > 0 ? '#D1FAE5' : '#E5E7EB',
+                            color: row.with_client_status === 0 ? '#9CA3AF' : row.approved_count > 0 ? '#065F46' : '#6B7280',
                             borderRadius: 1,
                             fontSize: '0.875rem',
                             fontWeight: 600,
                           }}
                         >
-                          {row.approved_count} ({row.total_delivered > 0 ? ((row.approved_count / row.total_delivered) * 100).toFixed(1) : 0}%)
+                          {row.with_client_status === 0 ? 'NA' : `${row.approved_count} (${row.total_delivered > 0 ? ((row.approved_count / row.total_delivered) * 100).toFixed(1) : 0}%)`}
                         </Box>
                       </TableCell>
                     </TableRow>

@@ -128,7 +128,7 @@ class DataSyncService:
                     r.conversation_id AS r_id,
                     bt.task_id AS delivered_id,
                     c.colab_link AS RLHF_Link,
-                    CASE WHEN r.conversation_id = bt.task_id THEN "True" ELSE "False" END AS is_delivered,
+                    "False" AS is_delivered,
                     r.status,
                     r.score AS task_score,
                     DATE(r.updated_at) AS updated_at,
@@ -265,7 +265,7 @@ class DataSyncService:
                     r.conversation_id AS r_id,
                     bt.task_id AS delivered_id,
                     c.colab_link AS RLHF_Link,
-                    CASE WHEN r.conversation_id = bt.task_id THEN "True" ELSE "False" END AS is_delivered,
+                    "False" AS is_delivered,
                     r.status,
                     r.score AS task_score,
                     DATE(r.updated_at) AS updated_at,
@@ -448,7 +448,7 @@ class DataSyncService:
                         r.conversation_id AS r_id,
                         bt.task_id AS delivered_id,
                         c.colab_link AS RLHF_Link,
-                        CASE WHEN r.conversation_id = bt.task_id THEN "True" ELSE "False" END AS is_delivered,
+                        "False" AS is_delivered,
                         r.status,
                         r.score AS task_score,
                         DATE(r.updated_at) AS updated_at,
@@ -531,6 +531,64 @@ class DataSyncService:
             logger.error(f"✗ Error syncing task_reviewed_info: {e}")
             return False
     
+    def _update_is_delivered_status(self) -> None:
+        """
+        Update is_delivered status for all tasks based on work_item table.
+        Tasks that exist in work_item table will have is_delivered = 'True',
+        all others will have is_delivered = 'False'.
+        Also syncs the status to ReviewDetail table.
+        """
+        try:
+            logger.info("Updating is_delivered status based on work_item table...")
+            
+            with self.db_service.get_session() as session:
+                from app.models.db_models import WorkItem, ReviewDetail
+                from sqlalchemy import update
+                
+                # Get all unique task_ids from work_item table
+                delivered_colab_link_ids = session.query(WorkItem.colab_link).distinct().all()
+                delivered_colab_link_ids = [row[0] for row in delivered_colab_link_ids if row[0]]
+                
+                # Update Task table
+                # First, set all tasks to is_delivered = 'False'
+                session.execute(
+                    update(Task).values(is_delivered='False')
+                )
+                
+                # Then, set tasks that exist in work_item to is_delivered = 'True'
+                delivered_task_ids = []
+                if delivered_colab_link_ids:
+                    session.execute(
+                        update(Task).where(Task.colab_link.in_(delivered_colab_link_ids)).values(is_delivered='True')
+                    )
+                    
+                    # Get the actual task IDs for delivered tasks
+                    delivered_task_ids = session.query(Task.id).filter(
+                        Task.colab_link.in_(delivered_colab_link_ids)
+                    ).all()
+                    delivered_task_ids = [row[0] for row in delivered_task_ids]
+                
+                # Update ReviewDetail table to match Task table
+                # First, set all review_detail records to is_delivered = 'False'
+                session.execute(
+                    update(ReviewDetail).values(is_delivered='False')
+                )
+                
+                # Then, set review_detail records for delivered tasks to is_delivered = 'True'
+                if delivered_task_ids:
+                    session.execute(
+                        update(ReviewDetail).where(
+                            ReviewDetail.conversation_id.in_(delivered_task_ids)
+                        ).values(is_delivered='True')
+                    )
+                
+                session.commit()
+                logger.info(f"✓ Updated is_delivered status: {len(delivered_colab_link_ids)} colab_links ({len(delivered_task_ids)} tasks) marked as delivered")
+                
+        except Exception as e:
+            logger.error(f"Error updating is_delivered status: {e}")
+            raise
+    
     def sync_all_tables(self, sync_type: str = 'scheduled') -> Dict[str, bool]:
         """Sync all required data from BigQuery to PostgreSQL"""
         logger.info(f"Starting data sync ({sync_type})...")
@@ -553,6 +611,14 @@ class DataSyncService:
             except Exception as e:
                 logger.error(f"Error syncing {table_name}: {e}")
                 results[table_name] = False
+        
+        # Update is_delivered status after all syncs complete
+        # This must happen AFTER review_detail sync to avoid being overwritten
+        try:
+            logger.info("Updating is_delivered status based on work_item table...")
+            self._update_is_delivered_status()
+        except Exception as e:
+            logger.error(f"Error updating is_delivered status: {e}")
         
         success_count = sum(1 for v in results.values() if v)
         logger.info("=" * 80)
