@@ -25,39 +25,8 @@ class S3IngestionService:
     def __init__(self):
         self.settings = get_settings()
         
-        # Initialize S3 client - use credentials from settings if available, otherwise use profile
-        if self.settings.aws_access_key_id and self.settings.aws_secret_access_key:
-            # Use credentials from settings (.env file)
-            session = boto3.Session(
-                aws_access_key_id=self.settings.aws_access_key_id,
-                aws_secret_access_key=self.settings.aws_secret_access_key,
-                region_name=self.settings.aws_region or 'us-east-1'
-            )
-            logger.info("Using AWS credentials from .env file")
-            
-            # If role ARN is provided, assume the role for S3 access
-            if self.settings.aws_role_arn:
-                sts_client = session.client('sts')
-                assumed_role = sts_client.assume_role(
-                    RoleArn=self.settings.aws_role_arn,
-                    RoleSessionName='rubric-dashboard-s3-session'
-                )
-                credentials = assumed_role['Credentials']
-                self.s3_client = boto3.client(
-                    's3',
-                    aws_access_key_id=credentials['AccessKeyId'],
-                    aws_secret_access_key=credentials['SecretAccessKey'],
-                    aws_session_token=credentials['SessionToken'],
-                    region_name=self.settings.aws_region or 'us-east-1'
-                )
-                logger.info(f"Assumed role: {self.settings.aws_role_arn}")
-            else:
-                self.s3_client = session.client('s3')
-        else:
-            # Fall back to AWS profile
-            session = boto3.Session(profile_name=self.settings.s3_aws_profile)
-            logger.info(f"Using AWS profile: {self.settings.s3_aws_profile}")
-            self.s3_client = session.client('s3')
+        # Store credentials info but don't create S3 client yet (to avoid expired tokens)
+        self.s3_client = None
         
         # Get S3 bucket and prefix from settings
         self.s3_bucket = self.settings.s3_bucket
@@ -73,6 +42,42 @@ class S3IngestionService:
         self.engine = create_engine(db_url, pool_pre_ping=True)
         self.SessionLocal = sessionmaker(bind=self.engine)
     
+    def _get_s3_client(self):
+        """
+        Get a fresh S3 client with current credentials (refreshes expired tokens)
+        """
+        # Use credentials from settings if available, otherwise use profile
+        if self.settings.aws_access_key_id and self.settings.aws_secret_access_key:
+            # Use credentials from settings (.env file)
+            session = boto3.Session(
+                aws_access_key_id=self.settings.aws_access_key_id,
+                aws_secret_access_key=self.settings.aws_secret_access_key,
+                region_name=self.settings.aws_region or 'us-east-1'
+            )
+            
+            # If role ARN is provided, assume the role for S3 access
+            if self.settings.aws_role_arn:
+                sts_client = session.client('sts')
+                assumed_role = sts_client.assume_role(
+                    RoleArn=self.settings.aws_role_arn,
+                    RoleSessionName='rubric-dashboard-s3-session',
+                    DurationSeconds=3600  # 1 hour
+                )
+                credentials = assumed_role['Credentials']
+                return boto3.client(
+                    's3',
+                    aws_access_key_id=credentials['AccessKeyId'],
+                    aws_secret_access_key=credentials['SecretAccessKey'],
+                    aws_session_token=credentials['SessionToken'],
+                    region_name=self.settings.aws_region or 'us-east-1'
+                )
+            else:
+                return session.client('s3')
+        else:
+            # Fall back to AWS profile
+            session = boto3.Session(profile_name=self.settings.s3_aws_profile)
+            return session.client('s3')
+    
     def list_s3_folders(self) -> List[str]:
         """
         List all folders (ingestion dates) under the S3 prefix
@@ -81,7 +86,8 @@ class S3IngestionService:
         try:
             logger.info(f"Listing folders in s3://{self.s3_bucket}/{self.s3_prefix}")
             
-            paginator = self.s3_client.get_paginator('list_objects_v2')
+            s3_client = self._get_s3_client()
+            paginator = s3_client.get_paginator('list_objects_v2')
             folders = set()
             
             for page in paginator.paginate(Bucket=self.s3_bucket, Prefix=self.s3_prefix, Delimiter='/'):
@@ -112,7 +118,8 @@ class S3IngestionService:
             folder_prefix = f"{self.s3_prefix}{folder_name}/"
             logger.info(f"Listing JSON files in s3://{self.s3_bucket}/{folder_prefix}")
             
-            paginator = self.s3_client.get_paginator('list_objects_v2')
+            s3_client = self._get_s3_client()
+            paginator = s3_client.get_paginator('list_objects_v2')
             json_files = []
             
             for page in paginator.paginate(Bucket=self.s3_bucket, Prefix=folder_prefix):
@@ -143,7 +150,8 @@ class S3IngestionService:
         try:
             logger.info(f"Reading s3://{self.s3_bucket}/{s3_key}")
             
-            response = self.s3_client.get_object(Bucket=self.s3_bucket, Key=s3_key)
+            s3_client = self._get_s3_client()
+            response = s3_client.get_object(Bucket=self.s3_bucket, Key=s3_key)
             content = response['Body'].read().decode('utf-8')
             return json.loads(content)
         
