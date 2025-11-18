@@ -679,48 +679,47 @@ async def get_client_delivery_summary() -> Dict[str, Any]:
         db_service = get_db_service()
         
         with db_service.get_session() as session:
-            # Total tasks delivered (distinct count of task_id)
+            # Total tasks delivered (distinct count of task_id from WorkItem table)
+            # Count WorkItem.task_id directly instead of joining with Task
+            # This ensures we count ALL delivered work items, not just those with matching tasks
             total_delivered = session.query(
-                func.count(distinct(Task.id))
-            ).select_from(WorkItem).join(
-                Task, WorkItem.colab_link == Task.colab_link
+                func.count(func.distinct(WorkItem.task_id))
+            ).filter(
+                WorkItem.task_id.isnot(None)
             ).scalar() or 0
             
             # Total tasks accepted by client (client_status = 'Approved' or 'APPROVED')
             total_accepted = session.query(
-                func.count(distinct(Task.id))
-            ).select_from(WorkItem).join(
-                Task, WorkItem.colab_link == Task.colab_link
+                func.count(func.distinct(WorkItem.task_id))
             ).filter(
+                WorkItem.task_id.isnot(None),
                 func.upper(WorkItem.client_status).in_(['APPROVED', 'ACCEPTED'])
             ).scalar() or 0
             
             # Total tasks rejected by client (client_status = 'Rejected' or 'REJECTED')
             total_rejected = session.query(
-                func.count(distinct(Task.id))
-            ).select_from(WorkItem).join(
-                Task, WorkItem.colab_link == Task.colab_link
+                func.count(func.distinct(WorkItem.task_id))
             ).filter(
+                WorkItem.task_id.isnot(None),
                 func.upper(WorkItem.client_status) == 'REJECTED'
             ).scalar() or 0
             
             # Total tasks pending (not approved or rejected)
             total_pending = session.query(
-                func.count(distinct(Task.id))
-            ).select_from(WorkItem).join(
-                Task, WorkItem.colab_link == Task.colab_link
+                func.count(func.distinct(WorkItem.task_id))
             ).filter(
+                WorkItem.task_id.isnot(None),
                 func.upper(WorkItem.client_status).notin_(['APPROVED', 'ACCEPTED', 'REJECTED'])
             ).scalar() or 0
             
             # Total work items delivered (distinct count of work_item_id)
             total_work_items = session.query(
-                func.count(distinct(WorkItem.work_item_id))
+                func.count(func.distinct(WorkItem.work_item_id))
             ).scalar() or 0
             
             # Total files delivered (distinct json_filename)
             total_files = session.query(
-                func.count(distinct(WorkItem.json_filename))
+                func.count(func.distinct(WorkItem.json_filename))
             ).filter(
                 WorkItem.json_filename.isnot(None)
             ).scalar() or 0
@@ -742,7 +741,7 @@ async def get_client_delivery_summary() -> Dict[str, Any]:
             
             # Get distinct annotators count
             total_annotators = session.query(
-                func.count(distinct(WorkItem.annotator_id))
+                func.count(func.distinct(WorkItem.annotator_id))
             ).filter(
                 WorkItem.annotator_id.isnot(None)
             ).scalar() or 0

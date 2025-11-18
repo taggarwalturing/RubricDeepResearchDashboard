@@ -28,6 +28,8 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import RefreshIcon from '@mui/icons-material/Refresh'
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
 import axios from 'axios'
 
 // Grouped task interface
@@ -74,9 +76,14 @@ export default function TaskWise() {
   const [numericFilters, setNumericFilters] = useState<Record<string, NumericFilter>>({})
   const [textFilters, setTextFilters] = useState<Record<string, TextFilter>>({})
   const [dateFilter, setDateFilter] = useState({ startDate: '', endDate: '' })
+  const [clientStatusFilter, setClientStatusFilter] = useState<string>('all')
+  const [turingStatusFilter, setTuringStatusFilter] = useState<string>('all')
+  const [filenameFilter, setFilenameFilter] = useState<string>('')
   const [filterAnchorEl, setFilterAnchorEl] = useState<HTMLElement | null>(null)
   const [activeFilterColumn, setActiveFilterColumn] = useState<string>('')
   const [sortModel, setSortModel] = useState<GridSortModel>([])
+  const [sortField, setSortField] = useState<string>('')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [paginationModel, setPaginationModel] = useState({
     pageSize: 20,
     page: 0,
@@ -176,6 +183,7 @@ export default function TaskWise() {
     let filtered = [...data]
 
     // Date filter
+    // Apply date filter
     if (dateFilter.startDate || dateFilter.endDate) {
       filtered = filtered.filter(task => {
         if (!task.delivery_date) return false
@@ -183,6 +191,31 @@ export default function TaskWise() {
         if (dateFilter.startDate && taskDate < new Date(dateFilter.startDate)) return false
         if (dateFilter.endDate && taskDate > new Date(dateFilter.endDate)) return false
         return true
+      })
+    }
+
+    // Apply Client Status filter
+    if (clientStatusFilter !== 'all') {
+      filtered = filtered.filter(task => {
+        const status = task.client_status?.toUpperCase() || 'PENDING'
+        return status === clientStatusFilter.toUpperCase()
+      })
+    }
+
+    // Apply Turing Status filter
+    if (turingStatusFilter !== 'all') {
+      filtered = filtered.filter(task => {
+        const status = task.turing_status?.toUpperCase() || 'DELIVERED'
+        return status === turingStatusFilter.toUpperCase()
+      })
+    }
+
+    // Apply filename filter
+    if (filenameFilter) {
+      filtered = filtered.filter(task => {
+        return task.work_items?.some(wi => 
+          wi.json_filename?.toLowerCase().includes(filenameFilter.toLowerCase())
+        )
       })
     }
 
@@ -212,8 +245,33 @@ export default function TaskWise() {
       })
     })
 
+    // Apply sorting
+    if (sortField) {
+      filtered.sort((a, b) => {
+        let aVal: any = a[sortField as keyof GroupedTask]
+        let bVal: any = b[sortField as keyof GroupedTask]
+
+        // Handle null/undefined values
+        if (aVal === null || aVal === undefined) return sortDirection === 'asc' ? 1 : -1
+        if (bVal === null || bVal === undefined) return sortDirection === 'asc' ? -1 : 1
+
+        // Convert to appropriate type for comparison
+        if (sortField === 'task_id') {
+          aVal = String(aVal)
+          bVal = String(bVal)
+        }
+
+        if (typeof aVal === 'string') {
+          const comparison = aVal.localeCompare(bVal)
+          return sortDirection === 'asc' ? comparison : -comparison
+        } else {
+          return sortDirection === 'asc' ? aVal - bVal : bVal - aVal
+        }
+      })
+    }
+
     setFilteredData(filtered)
-  }, [data, numericFilters, textFilters, dateFilter])
+  }, [data, numericFilters, textFilters, dateFilter, clientStatusFilter, turingStatusFilter, filenameFilter, sortField, sortDirection])
 
   const toggleRowExpansion = (taskId: string) => {
     console.log('🔵 Toggling task:', taskId)
@@ -224,6 +282,17 @@ export default function TaskWise() {
     } else {
       console.log('🟢 Expanding')
       setExpandedRows([...expandedRows, taskId])
+    }
+  }
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // New field, default to ascending
+      setSortField(field)
+      setSortDirection('asc')
     }
   }
 
@@ -431,6 +500,9 @@ export default function TaskWise() {
     setNumericFilters(initializeNumericFilters(data))
     setTextFilters({})
     setDateFilter({ startDate: '', endDate: '' })
+    setClientStatusFilter('all')
+    setTuringStatusFilter('all')
+    setFilenameFilter('')
   }
 
   const hasActiveFilters = () => {
@@ -439,7 +511,10 @@ export default function TaskWise() {
     )
     const hasText = Object.keys(textFilters).length > 0
     const hasDate = dateFilter.startDate !== '' || dateFilter.endDate !== ''
-    return hasNumeric || hasText || hasDate
+    const hasClientStatus = clientStatusFilter !== 'all'
+    const hasTuringStatus = turingStatusFilter !== 'all'
+    const hasFilename = filenameFilter !== ''
+    return hasNumeric || hasText || hasDate || hasClientStatus || hasTuringStatus || hasFilename
   }
 
   // Memoize getDetailPanelHeight to force re-render when expandedRows changes
@@ -495,6 +570,7 @@ export default function TaskWise() {
           onChange={(e) => setDateFilter(prev => ({ ...prev, startDate: e.target.value }))}
           InputLabelProps={{ shrink: true }}
           size="small"
+          sx={{ minWidth: 150 }}
         />
         <TextField
           label="Date To"
@@ -503,6 +579,40 @@ export default function TaskWise() {
           onChange={(e) => setDateFilter(prev => ({ ...prev, endDate: e.target.value }))}
           InputLabelProps={{ shrink: true }}
           size="small"
+          sx={{ minWidth: 150 }}
+        />
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>Client Status</InputLabel>
+          <Select
+            value={clientStatusFilter}
+            label="Client Status"
+            onChange={(e) => setClientStatusFilter(e.target.value)}
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="approved">Approved</MenuItem>
+            <MenuItem value="rejected">Rejected</MenuItem>
+            <MenuItem value="pending">Pending</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel>Turing Status</InputLabel>
+          <Select
+            value={turingStatusFilter}
+            label="Turing Status"
+            onChange={(e) => setTuringStatusFilter(e.target.value)}
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="delivered">Delivered</MenuItem>
+            <MenuItem value="rework">Rework</MenuItem>
+          </Select>
+        </FormControl>
+        <TextField
+          label="JSON Filename"
+          value={filenameFilter}
+          onChange={(e) => setFilenameFilter(e.target.value)}
+          placeholder="Search filename..."
+          size="small"
+          sx={{ minWidth: 200 }}
         />
         {hasActiveFilters() && (
           <Button
@@ -530,40 +640,82 @@ export default function TaskWise() {
             }}
           >
             <Box sx={{ width: 40, mr: 2 }}></Box>
-            <Box sx={{ minWidth: 120, mr: 2 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: '#1F2937' }}>
+            <Box 
+              sx={{ minWidth: 120, mr: 2, display: 'flex', alignItems: 'center', cursor: 'pointer', '&:hover': { color: '#2E5CFF' } }}
+              onClick={() => handleSort('task_id')}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 700, color: 'inherit' }}>
                 Labelling Task ID
               </Typography>
+              {sortField === 'task_id' && (
+                sortDirection === 'asc' ? <ArrowUpwardIcon sx={{ ml: 0.5, fontSize: 16 }} /> : <ArrowDownwardIcon sx={{ ml: 0.5, fontSize: 16 }} />
+              )}
             </Box>
-            <Box sx={{ minWidth: 80, mr: 2 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: '#1F2937' }}>
+            <Box 
+              sx={{ minWidth: 80, mr: 2, display: 'flex', alignItems: 'center', cursor: 'pointer', '&:hover': { color: '#2E5CFF' } }}
+              onClick={() => handleSort('task_score')}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 700, color: 'inherit' }}>
                 Task Score
               </Typography>
+              {sortField === 'task_score' && (
+                sortDirection === 'asc' ? <ArrowUpwardIcon sx={{ ml: 0.5, fontSize: 16 }} /> : <ArrowDownwardIcon sx={{ ml: 0.5, fontSize: 16 }} />
+              )}
             </Box>
-            <Box sx={{ minWidth: 100, mr: 2 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: '#1F2937' }}>
+            <Box 
+              sx={{ minWidth: 100, mr: 2, display: 'flex', alignItems: 'center', cursor: 'pointer', '&:hover': { color: '#2E5CFF' } }}
+              onClick={() => handleSort('rework_count')}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 700, color: 'inherit' }}>
                 Rework Count
               </Typography>
+              {sortField === 'rework_count' && (
+                sortDirection === 'asc' ? <ArrowUpwardIcon sx={{ ml: 0.5, fontSize: 16 }} /> : <ArrowDownwardIcon sx={{ ml: 0.5, fontSize: 16 }} />
+              )}
             </Box>
-            <Box sx={{ minWidth: 100, mr: 2 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: '#1F2937' }}>
+            <Box 
+              sx={{ minWidth: 100, mr: 2, display: 'flex', alignItems: 'center', cursor: 'pointer', '&:hover': { color: '#2E5CFF' } }}
+              onClick={() => handleSort('work_item_count')}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 700, color: 'inherit' }}>
                 Work Items
               </Typography>
+              {sortField === 'work_item_count' && (
+                sortDirection === 'asc' ? <ArrowUpwardIcon sx={{ ml: 0.5, fontSize: 16 }} /> : <ArrowDownwardIcon sx={{ ml: 0.5, fontSize: 16 }} />
+              )}
             </Box>
-            <Box sx={{ minWidth: 120, mr: 2 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: '#1F2937' }}>
+            <Box 
+              sx={{ minWidth: 120, mr: 2, display: 'flex', alignItems: 'center', cursor: 'pointer', '&:hover': { color: '#2E5CFF' } }}
+              onClick={() => handleSort('delivery_date')}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 700, color: 'inherit' }}>
                 Delivery Date
               </Typography>
+              {sortField === 'delivery_date' && (
+                sortDirection === 'asc' ? <ArrowUpwardIcon sx={{ ml: 0.5, fontSize: 16 }} /> : <ArrowDownwardIcon sx={{ ml: 0.5, fontSize: 16 }} />
+              )}
             </Box>
-            <Box sx={{ minWidth: 120, mr: 2 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: '#1F2937' }}>
+            <Box 
+              sx={{ minWidth: 120, mr: 2, display: 'flex', alignItems: 'center', cursor: 'pointer', '&:hover': { color: '#2E5CFF' } }}
+              onClick={() => handleSort('turing_status')}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 700, color: 'inherit' }}>
                 Turing Status
               </Typography>
+              {sortField === 'turing_status' && (
+                sortDirection === 'asc' ? <ArrowUpwardIcon sx={{ ml: 0.5, fontSize: 16 }} /> : <ArrowDownwardIcon sx={{ ml: 0.5, fontSize: 16 }} />
+              )}
             </Box>
-            <Box sx={{ minWidth: 120 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: '#1F2937' }}>
+            <Box 
+              sx={{ minWidth: 120, display: 'flex', alignItems: 'center', cursor: 'pointer', '&:hover': { color: '#2E5CFF' } }}
+              onClick={() => handleSort('client_status')}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 700, color: 'inherit' }}>
                 Client Status
               </Typography>
+              {sortField === 'client_status' && (
+                sortDirection === 'asc' ? <ArrowUpwardIcon sx={{ ml: 0.5, fontSize: 16 }} /> : <ArrowDownwardIcon sx={{ ml: 0.5, fontSize: 16 }} />
+              )}
             </Box>
           </Box>
         </Paper>

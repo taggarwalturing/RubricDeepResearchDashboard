@@ -357,6 +357,7 @@ class PostgresQueryService:
                         'domain_count': 0,
                         'delivered_tasks': 0,
                         'delivered_files': 0,
+                        'work_items_count': 0,
                         'quality_dimensions': []
                     }
                 
@@ -373,15 +374,36 @@ class PostgresQueryService:
                     if review_detail.domain:
                         unique_domains.add(review_detail.domain)
                 
-                # Get work_item stats (delivered tasks and files)
+                # Import func and distinct for counting queries
                 from app.models.db_models import WorkItem
-                from sqlalchemy import func, distinct
                 
-                delivered_tasks = session.query(func.count(distinct(WorkItem.task_id))).scalar() or 0
-                delivered_files = session.query(func.count(distinct(WorkItem.json_filename))).scalar() or 0
-                work_items_count = session.query(func.count(distinct(WorkItem.work_item_id))).scalar() or 0
+                # Get the actual task count from Task table (not ReviewDetail) for pre-delivery
+                # This gives us the correct count of unique tasks that haven't been delivered yet
+                task_count_query = session.query(func.count(func.distinct(Task.id))).filter(
+                    Task.is_delivered == 'False'
+                )
+                # Apply filters if provided
+                if filters:
+                    if filters.get('domain'):
+                        task_count_query = task_count_query.filter(Task.domain == filters['domain'])
+                    if filters.get('trainer'):
+                        task_count_query = task_count_query.filter(Task.current_user_id == int(filters['trainer']))
+                
+                actual_task_count = task_count_query.scalar() or 0
+                
+                # Get work_item stats (delivered tasks and files)
+                
+                delivered_tasks = session.query(func.count(func.distinct(WorkItem.task_id))).filter(
+                    WorkItem.task_id.isnot(None)
+                ).scalar() or 0
+                delivered_files = session.query(func.count(func.distinct(WorkItem.json_filename))).filter(
+                    WorkItem.json_filename.isnot(None)
+                ).scalar() or 0
+                work_items_count = session.query(func.count(func.distinct(WorkItem.work_item_id))).scalar() or 0
                 
                 overall_data = aggregated[0]
+                # Use the actual task count from Task table instead of from ReviewDetail
+                overall_data['task_count'] = actual_task_count
                 overall_data['reviewer_count'] = len(unique_reviewers)
                 overall_data['trainer_count'] = len(unique_trainers)
                 overall_data['domain_count'] = len(unique_domains)
@@ -666,13 +688,25 @@ class PostgresQueryService:
     
     def get_client_delivery_aggregation(self, filters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Get overall aggregation statistics for client delivery (delivered tasks only)
-        Uses LEFT JOIN from work_item to task, NO quality dimensions"""
+        Count directly from WorkItem table to include ALL delivered work items"""
         try:
             with self.db_service.get_session() as session:
-                # Query work_item LEFT JOIN task LEFT JOIN task_reviewed_info
-                # Also get reviewer_id from review_detail to count unique reviewers
                 from app.models.db_models import TaskReviewedInfo
                 
+                # Count distinct task_ids directly from WorkItem (no JOIN with Task)
+                # This ensures we count ALL delivered work items
+                task_count = session.query(
+                    func.count(func.distinct(WorkItem.task_id))
+                ).filter(
+                    WorkItem.task_id.isnot(None)
+                ).scalar() or 0
+                
+                # Count distinct work_item_ids
+                work_items_count = session.query(
+                    func.count(func.distinct(WorkItem.work_item_id))
+                ).scalar() or 0
+                
+                # For other stats, we need to join with Task table
                 # Get distinct work_item task_ids with domain, trainer info, and rework_count
                 task_query = session.query(
                     WorkItem.task_id,
@@ -695,23 +729,9 @@ class PostgresQueryService:
                 
                 task_results = task_query.all()
                 
-                # Get distinct work_item_id count
-                work_item_query = session.query(
-                    func.count(func.distinct(WorkItem.work_item_id))
-                ).select_from(WorkItem).join(
-                    Task, WorkItem.colab_link == Task.colab_link
-                ).filter(
-                    Task.is_delivered == 'True'
-                )
-                
-                if filters and filters.get('domain'):
-                    work_item_query = work_item_query.filter(Task.domain == filters['domain'])
-                
-                work_items_count = work_item_query.scalar() or 0
-                
                 if not task_results:
                     return {
-                        'task_count': 0,
+                        'task_count': task_count,
                         'work_items_count': work_items_count,
                         'reviewer_count': 0,
                         'trainer_count': 0,
@@ -778,7 +798,7 @@ class PostgresQueryService:
                 quality_dimensions_count = len(filtered_qd_names)
                 
                 return {
-                    'task_count': len(task_results),  # Count of distinct work_item.task_id
+                    'task_count': task_count,  # Count of distinct work_item.task_id (from WorkItem table directly)
                     'work_items_count': work_items_count,  # Count of distinct work_item_id
                     'reviewer_count': reviewer_count,
                     'trainer_count': len(unique_trainers),
