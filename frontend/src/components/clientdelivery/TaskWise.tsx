@@ -23,10 +23,8 @@ import {
   InputLabel,
   TableContainer,
 } from '@mui/material'
-import { GridColDef } from '@mui/x-data-grid'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
@@ -289,12 +287,6 @@ export default function TaskWise() {
       setSortField(field)
       setSortDirection('asc')
     }
-  }
-
-  const handleFilterClick = (event: React.MouseEvent<HTMLElement>, column: string) => {
-    event.stopPropagation()
-    setActiveFilterColumn(column)
-    setFilterAnchorEl(event.currentTarget)
   }
 
   const handleFilterClose = () => {
