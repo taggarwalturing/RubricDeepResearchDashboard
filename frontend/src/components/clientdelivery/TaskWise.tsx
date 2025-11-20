@@ -23,7 +23,7 @@ import {
   InputLabel,
   TableContainer,
 } from '@mui/material'
-import { DataGrid, GridColDef, GridSortModel, GridRowsProp } from '@mui/x-data-grid'
+import { GridColDef, GridSortModel } from '@mui/x-data-grid'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
@@ -81,13 +81,8 @@ export default function TaskWise() {
   const [filenameFilter, setFilenameFilter] = useState<string>('')
   const [filterAnchorEl, setFilterAnchorEl] = useState<HTMLElement | null>(null)
   const [activeFilterColumn, setActiveFilterColumn] = useState<string>('')
-  const [sortModel, setSortModel] = useState<GridSortModel>([])
   const [sortField, setSortField] = useState<string>('')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-  const [paginationModel, setPaginationModel] = useState({
-    pageSize: 20,
-    page: 0,
-  })
 
   const fetchData = async () => {
     try {
@@ -353,149 +348,6 @@ export default function TaskWise() {
     )
   }
 
-  const columns: GridColDef[] = [
-    {
-      field: 'expand',
-      headerName: '',
-      width: 60,
-      sortable: false,
-      filterable: false,
-      renderCell: (params) => (
-        <IconButton
-          size="small"
-          onClick={(e) => {
-            e.stopPropagation()
-            toggleRowExpansion(params.row.task_id)
-          }}
-          sx={{
-            '&:hover': {
-              backgroundColor: 'rgba(0, 0, 0, 0.04)',
-            }
-          }}
-        >
-          {expandedRows.includes(params.row.task_id) ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-        </IconButton>
-      ),
-    },
-    {
-      field: 'task_id',
-      headerName: 'Labelling Task ID',
-      width: calculateColumnWidth('Labelling Task ID', filteredData, 'task_id'),
-      renderHeader: () => renderHeaderWithDropdown('Labelling Task ID', false, 'task_id'),
-      renderCell: (params) => (
-        <Typography 
-          variant="body2" 
-          sx={{ 
-            fontWeight: 600, 
-            color: '#2E5CFF', 
-            cursor: 'pointer',
-            '&:hover': { textDecoration: 'underline' }
-          }}
-          onClick={() => {
-            if (params.value) {
-              window.open(`https://labeling-z.turing.com/conversations/${params.value}/view`, '_blank')
-            }
-          }}
-        >
-          {params.value || 'N/A'}
-        </Typography>
-      ),
-    },
-    {
-      field: 'task_score',
-      headerName: 'Task Score',
-      width: calculateColumnWidth('Task Score', filteredData, 'task_score'),
-      type: 'number',
-      renderHeader: () => renderHeaderWithDropdown('Task Score', true, 'task_score'),
-      renderCell: (params) => (
-        <Typography variant="body2" sx={{ fontWeight: 600, color: '#1F2937' }}>
-          {params.value !== null && params.value !== undefined ? Number(params.value).toFixed(2) : 'N/A'}
-        </Typography>
-      ),
-    },
-    {
-      field: 'rework_count',
-      headerName: 'Rework Count',
-      width: calculateColumnWidth('Rework Count', filteredData, 'rework_count'),
-      type: 'number',
-      renderHeader: () => renderHeaderWithDropdown('Rework Count', true, 'rework_count'),
-      renderCell: (params) => (
-        <Chip
-          label={params.value || 0}
-          size="small"
-          sx={{
-            backgroundColor: params.value > 0 ? '#FEF3C7' : '#E5E7EB',
-            color: params.value > 0 ? '#92400E' : '#6B7280',
-            fontWeight: 600,
-          }}
-        />
-      ),
-    },
-    {
-      field: 'work_item_count',
-      headerName: 'Work Items',
-      width: calculateColumnWidth('Work Items', filteredData, 'work_item_count'),
-      type: 'number',
-      renderHeader: () => renderHeaderWithDropdown('Work Items', true, 'work_item_count'),
-      renderCell: (params) => (
-        <Chip
-          label={`${params.value} items`}
-          size="small"
-          sx={{
-            backgroundColor: '#EEF2FF',
-            color: '#4F46E5',
-            fontWeight: 600,
-          }}
-        />
-      ),
-    },
-    {
-      field: 'delivery_date',
-      headerName: 'Delivery Date',
-      width: calculateColumnWidth('Delivery Date', filteredData, 'delivery_date'),
-      renderHeader: () => renderHeaderWithDropdown('Delivery Date', false, 'delivery_date'),
-      renderCell: (params) => (
-        <Typography variant="body2" sx={{ color: '#1F2937' }}>
-          {params.value ? new Date(params.value).toLocaleDateString() : 'N/A'}
-        </Typography>
-      ),
-    },
-    {
-      field: 'turing_status',
-      headerName: 'Turing Status',
-      width: calculateColumnWidth('Turing Status', filteredData, 'turing_status'),
-      renderHeader: () => renderHeaderWithDropdown('Turing Status', false, 'turing_status'),
-      renderCell: (params) => (
-        <Chip
-          label={params.value || 'N/A'}
-          size="small"
-          sx={{
-            backgroundColor: getStatusColor(params.value, 'turing'),
-            color: 'white',
-            fontWeight: 600,
-          }}
-        />
-      ),
-    },
-    {
-      field: 'client_status',
-      headerName: 'Client Status',
-      width: calculateColumnWidth('Client Status', filteredData, 'client_status'),
-      renderHeader: () => renderHeaderWithDropdown('Client Status', false, 'client_status'),
-      renderCell: (params) => (
-        <Chip
-          label={params.value || 'Pending'}
-          size="small"
-          sx={{
-            backgroundColor: getStatusColor(params.value, 'client'),
-            color: 'white',
-            fontWeight: 600,
-          }}
-        />
-      ),
-    },
-  ]
-
   const clearAllFilters = () => {
     setNumericFilters(initializeNumericFilters(data))
     setTextFilters({})
@@ -516,15 +368,6 @@ export default function TaskWise() {
     const hasFilename = filenameFilter !== ''
     return hasNumeric || hasText || hasDate || hasClientStatus || hasTuringStatus || hasFilename
   }
-
-  // Memoize getDetailPanelHeight to force re-render when expandedRows changes
-  const getDetailPanelHeightMemo = useMemo(() => {
-    return ({ row }: { row: GroupedTask }) => {
-      const isExpanded = expandedRows.includes(row.task_id)
-      console.log(`🟣 getDetailPanelHeight for ${row.task_id}: expandedRows=`, expandedRows, 'isExpanded=', isExpanded)
-      return isExpanded ? 'auto' : 0
-    }
-  }, [expandedRows])
 
   if (loading) {
     return (
@@ -720,7 +563,7 @@ export default function TaskWise() {
           </Box>
         </Paper>
 
-        {filteredData.map((task, index) => (
+        {filteredData.map((task) => (
           <Box key={task.task_id} sx={{ mb: 0 }}>
             {/* Main Row */}
             <Paper sx={{ boxShadow: '0 1px 3px rgba(0,0,0,0.12)', mb: expandedRows.includes(task.task_id) ? 0 : 0 }}>

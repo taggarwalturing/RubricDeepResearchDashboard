@@ -99,7 +99,7 @@ export default function TrainerWise({ isClientDelivery = false }: TrainerWisePro
     // Initialize filter for task_score
     const taskScores = trainers
       .map(t => t.average_task_score)
-      .filter(val => val !== null && val !== undefined && val !== 'N/A')
+      .filter(val => val !== null && val !== undefined && (typeof val === 'number' || val !== 'N/A'))
       .map(val => typeof val === 'string' ? parseFloat(val) : val)
     if (taskScores.length > 0) {
       const minScore = Math.min(...taskScores)
@@ -212,7 +212,7 @@ export default function TrainerWise({ isClientDelivery = false }: TrainerWisePro
           if (key === 'task_score') {
             // Handle task_score - convert from string if needed
             const taskScore = trainer.average_task_score
-            if (taskScore !== null && taskScore !== undefined && taskScore !== 'N/A') {
+            if (taskScore !== null && taskScore !== undefined && (typeof taskScore === 'number' || taskScore !== 'N/A')) {
               value = typeof taskScore === 'string' ? parseFloat(taskScore) : taskScore
             }
           } else if (key === 'task_count') {
@@ -277,7 +277,7 @@ export default function TrainerWise({ isClientDelivery = false }: TrainerWisePro
   }
 
   // Custom header renderer with dropdown arrow
-  const renderHeaderWithDropdown = (headerName: string, isNumeric: boolean = false, fieldKey: string = '') => (params: any) => {
+  const renderHeaderWithDropdown = (headerName: string, _isNumeric: boolean = false, fieldKey: string = '') => () => {
     return (
       <Box
         sx={{
@@ -613,7 +613,7 @@ export default function TrainerWise({ isClientDelivery = false }: TrainerWisePro
             multiple
             options={trainerOptions}
             value={selectedTrainers}
-            onChange={(event, newValue) => setSelectedTrainers(newValue)}
+            onChange={(_event, newValue) => setSelectedTrainers(newValue)}
             filterOptions={(options, { inputValue }) => {
               // Custom filter to search in entire option string (includes email)
               const searchTerm = inputValue.toLowerCase()
@@ -845,7 +845,6 @@ export default function TrainerWise({ isClientDelivery = false }: TrainerWisePro
             sortModel={sortModel}
             onSortModelChange={setSortModel}
             getDetailPanelContent={getDetailPanelContent}
-            getDetailPanelHeight={getDetailPanelHeight}
             sx={{
               border: 'none',
               backgroundColor: 'white',

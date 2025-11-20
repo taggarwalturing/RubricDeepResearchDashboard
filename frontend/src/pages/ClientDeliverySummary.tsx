@@ -22,11 +22,8 @@ import {
   Star as StarIcon,
   People as PeopleIcon,
   Assignment as AssignmentIcon,
-  Inventory as InventoryIcon,
 } from '@mui/icons-material'
 import {
-  ComposedChart,
-  Line,
   Bar,
   XAxis,
   YAxis,
@@ -150,8 +147,6 @@ function SummaryCard({ title, value, icon, color, bgColor }: SummaryCardProps) {
 
 export default function ClientDeliverySummary() {
   const [data, setData] = useState<ClientDeliverySummary | null>(null)
-  const [timelineData, setTimelineData] = useState<TimelineData[]>([])
-  const [qualityTimelineData, setQualityTimelineData] = useState<QualityTimelineData[]>([])
   const [sankeyData, setSankeyData] = useState<SankeyData | null>(null)
   const [dateSummary, setDateSummary] = useState<DateSummary[]>([])
   const [qualitySummary, setQualitySummary] = useState<QualitySummary[]>([])
@@ -162,7 +157,7 @@ export default function ClientDeliverySummary() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [summaryResponse, timelineResponse, qualityTimelineResponse, sankeyResponse, dateSummaryResponse, qualitySummaryResponse] = await Promise.all([
+        const [summaryResponse, , , sankeyResponse, dateSummaryResponse, qualitySummaryResponse] = await Promise.all([
           axios.get(`${import.meta.env.VITE_API_URL || ''}/api/client-delivery-summary`),
           axios.get(`${import.meta.env.VITE_API_URL || ''}/api/client-delivery-timeline`),
           axios.get(`${import.meta.env.VITE_API_URL || ''}/api/client-delivery-quality-timeline`),
@@ -171,8 +166,6 @@ export default function ClientDeliverySummary() {
           axios.get(`${import.meta.env.VITE_API_URL || ''}/api/client-delivery-quality-summary`)
         ])
         setData(summaryResponse.data)
-        setTimelineData(timelineResponse.data)
-        setQualityTimelineData(qualityTimelineResponse.data)
         setSankeyData(sankeyResponse.data)
         setDateSummary(dateSummaryResponse.data)
         setQualitySummary(qualitySummaryResponse.data)
@@ -588,7 +581,6 @@ export default function ClientDeliverySummary() {
                 labelPadding={16}
                 labelTextColor="#1F2937"
                 theme={{
-                  fontSize: 12,
                   fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
                 }}
               />

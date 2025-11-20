@@ -124,19 +124,17 @@ function SummaryCard({ title, value, icon, color }: SummaryCardProps) {
 export default function PreDelivery() {
   const [activeTab, setActiveTab] = useState(0)
   const [overallData, setOverallData] = useState<OverallAggregation | null>(null)
-  const [domainData, setDomainData] = useState<DomainAggregation[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [overall, domains] = await Promise.all([
+        const [overall] = await Promise.all([
           getOverallStats(),
           getDomainStats()
         ])
         setOverallData(overall)
-        setDomainData(domains)
       } catch (error) {
         console.error('Failed to fetch pre-delivery summary data:', error)
       } finally {
@@ -146,7 +144,7 @@ export default function PreDelivery() {
     fetchData()
   }, [])
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
   }
 
