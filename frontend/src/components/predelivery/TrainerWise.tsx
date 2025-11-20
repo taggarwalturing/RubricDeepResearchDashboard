@@ -602,8 +602,6 @@ export default function TrainerWise({ isClientDelivery = false }: TrainerWisePro
     )
   }
 
-  const getDetailPanelHeight = () => 'auto' as const
-
   return (
     <Box>
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>

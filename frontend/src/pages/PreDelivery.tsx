@@ -23,7 +23,7 @@ import TrainerWise from '../components/predelivery/TrainerWise'
 import ReviewerWise from '../components/predelivery/ReviewerWise'
 import TaskWise from '../components/predelivery/TaskWise'
 import { getOverallStats, getDomainStats } from '../services/api'
-import type { OverallAggregation, DomainAggregation } from '../types'
+import type { OverallAggregation } from '../types'
 
 interface TabPanelProps {
   children?: React.ReactNode

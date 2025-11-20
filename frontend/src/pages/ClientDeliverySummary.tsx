@@ -23,15 +23,6 @@ import {
   People as PeopleIcon,
   Assignment as AssignmentIcon,
 } from '@mui/icons-material'
-import {
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts'
 import { ResponsiveSankey } from '@nivo/sankey'
 import axios from 'axios'
 
@@ -43,20 +34,6 @@ interface ClientDeliverySummary {
   total_files: number
   average_turing_rating: number
   total_annotators: number
-}
-
-interface TimelineData {
-  date: string
-  total: number
-  rejected: number
-  approved: number
-  pending: number
-  average_rating: number
-}
-
-interface QualityTimelineData {
-  date: string
-  [key: string]: string | number  // Dynamic quality dimensions
 }
 
 interface SankeyData {
@@ -580,9 +557,6 @@ export default function ClientDeliverySummary() {
                 labelOrientation="horizontal"
                 labelPadding={16}
                 labelTextColor="#1F2937"
-                theme={{
-                  fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-                }}
               />
             </Box>
           </Paper>

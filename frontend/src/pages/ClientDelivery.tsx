@@ -27,7 +27,7 @@ import TaskWise from '../components/clientdelivery/TaskWise'
 import FeedbackUpload from '../components/clientdelivery/FeedbackUpload'
 import S3SyncButton from '../components/clientdelivery/S3SyncButton'
 import { getClientDeliveryOverallStats, getClientDeliveryDomainStats } from '../services/api'
-import type { OverallAggregation, DomainAggregation } from '../types'
+import type { OverallAggregation } from '../types'
 
 interface TabPanelProps {
   children?: React.ReactNode

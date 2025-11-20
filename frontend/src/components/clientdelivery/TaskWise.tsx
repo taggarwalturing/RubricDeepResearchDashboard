@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Paper,
@@ -23,7 +23,7 @@ import {
   InputLabel,
   TableContainer,
 } from '@mui/material'
-import { GridColDef, GridSortModel } from '@mui/x-data-grid'
+import { GridColDef } from '@mui/x-data-grid'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
@@ -314,38 +314,6 @@ export default function TaskWise() {
       if (status === 'Mixed') return '#8B5CF6'
       return '#6B7280'
     }
-  }
-
-  const calculateColumnWidth = (headerText: string, data: any[], field: string) => {
-    const headerWidth = headerText.length * 10 + 80
-    const maxContentWidth = data.reduce((max, row) => {
-      const value = String(row[field] || '')
-      return Math.max(max, value.length * 8 + 40)
-    }, 0)
-    return Math.max(headerWidth, maxContentWidth, 120)
-  }
-
-  const renderHeaderWithDropdown = (label: string, isNumeric: boolean, field: string) => {
-    const hasFilter = (isNumeric && numericFilters[field]) || (!isNumeric && textFilters[field])
-    
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: '100%' }}>
-        <IconButton
-          size="small"
-          onClick={(e) => handleFilterClick(e, field)}
-          sx={{ 
-            padding: '2px',
-            color: hasFilter ? '#2E5CFF' : '#6B7280',
-            '&:hover': { backgroundColor: '#F3F4F6' }
-          }}
-        >
-          <ArrowDropDownIcon fontSize="small" />
-        </IconButton>
-        <Typography variant="body2" sx={{ fontWeight: 700, color: '#1F2937', fontSize: '0.875rem' }}>
-          {label}
-        </Typography>
-      </Box>
-    )
   }
 
   const clearAllFilters = () => {
